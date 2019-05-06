@@ -1,0 +1,16 @@
+int x;
+float y;
+Mat matrix;
+Table table;
+List list;
+string name = "John Doe";
+
+boolean condition
+{
+   x = 1;
+   if (x > 0) {
+     write "ok!" + name;
+   } else {
+     write "deu rui"m_jao??";
+   }
+}
