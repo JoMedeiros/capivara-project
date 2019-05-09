@@ -1,0 +1,6 @@
+   z := 3;
+program main
+begin
+   x := 1;
+   y := 2;
+end
