@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Lexer
+import Tokens
 import Text.Parsec
 import Control.Monad.IO.Class
 
@@ -18,10 +18,6 @@ idToken = tokenPrim show update_pos get_token where
   get_token (Id x) = Just (Id x)
   get_token _      = Nothing
 
-varToken = tokenPrim show update_pos get_token where
-  get_token Var = Just Var
-  get_token _   = Nothing  
-
 beginToken = tokenPrim show update_pos get_token where
   get_token Begin = Just Begin
   get_token _     = Nothing
@@ -35,13 +31,18 @@ semiColonToken = tokenPrim show update_pos get_token where
   get_token SemiColon = Just SemiColon
   get_token _         = Nothing
 
-colonToken = tokenPrim show update_pos get_token where
-  get_token Colon = Just Colon
-  get_token _     = Nothing
+--colonToken = tokenPrim show update_pos get_token where
+--  get_token Colon = Just Colon
+--  get_token _     = Nothing
 
 assignToken = tokenPrim show update_pos get_token where
   get_token Assign = Just Assign
   get_token _      = Nothing
+
+constToken :: ParsecT [Token] st IO (Token)
+constToken = tokenPrim show update_pos get_token where
+  get_token Const   = Just Const
+  get_token _       = Nothing
 
 intToken = tokenPrim show update_pos get_token where
   get_token (Int x) = Just (Int x)
@@ -59,15 +60,45 @@ update_pos pos _ []      = pos
 
 program :: ParsecT [Token] [(Token,Token)] IO ([Token])
 program = do
+            p <- preDecls
+            d <- beginToken 
             a <- programToken 
             b <- idToken 
             c <- decls
-            d <- beginToken 
             e <- stmts
             f <- endToken
+            g <- programToken 
             eof
-            return (a:[b] ++ c ++ [d] ++ e ++ [f])
+            return (p ++ [d] ++ a:[b] ++ c ++ e ++ f:[g])
 
+-- Const declarations
+preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
+preDecls = do
+          first <- constDecl <|> varDecl <|> voidTokens
+          next <- remaining_preDecls <|> voidTokens
+          return (first ++ next)
+
+remaining_preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
+remaining_preDecls = (do a <- constDecl <|> varDecl
+                         b <- remaining_preDecls
+                         return (a ++ b)) <|> (return [])
+
+voidTokens :: ParsecT [Token] [(Token,Token)] IO([Token])
+voidTokens =  do
+            return []
+
+constDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
+constDecl = do
+            c <- constToken
+            a <- typeToken
+            b <- idToken
+            e <- semiColonToken
+            updateState(symtable_insert (b, get_default_value a))
+            s <- getState
+            liftIO (print s)
+            return (c:a:b:[e])
+
+-- Var declarations
 decls :: ParsecT [Token] [(Token,Token)] IO([Token])
 decls = do
           first <- varDecl
@@ -81,19 +112,17 @@ remaining_decls = (do a <- varDecl
 
 varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
-            a <- varToken
+            a <- typeToken
             b <- idToken
-            c <- colonToken
-            d <- typeToken
             e <- semiColonToken
-            updateState(symtable_insert (b, get_default_value d))
+            updateState(symtable_insert (b, get_default_value a))
             s <- getState
             liftIO (print s)
-            return (a:b:c:d:[e])
+            return (a:b:[e])
 
 stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
 stmts = do
-          first <- assign
+          first <- assign <|> varDecl
           next <- remaining_stmts
           return (first ++ next)
 
@@ -109,7 +138,7 @@ assign = do
           return (a:b:c:[d])
 
 remaining_stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_stmts = (do a <- assign
+remaining_stmts = (do a <- assign <|> varDecl
                       b <- remaining_stmts
                       return (a ++ b)) <|> (return [])
 
@@ -141,7 +170,7 @@ parser :: [Token] -> IO (Either ParseError [Token])
 parser tokens = runParserT program [] "Error message" tokens
 
 main :: IO ()
-main = case unsafePerformIO (parser (getTokens "programaV1V2.pe")) of
+main = case unsafePerformIO (parser (getTokens "../language_examples/programaV1V2.pe")) of
             { Left err -> print err; 
               Right ans -> print ans
             }
