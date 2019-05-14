@@ -1,0 +1,14 @@
+-- Pre declarations
+int global_variable;
+const int global_constant;
+
+begin program
+  int x;
+  int y;
+  int z;
+  x = 3;
+  int alpha;
+  y = 666;
+  z = 777;
+end program
+

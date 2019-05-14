@@ -44,6 +44,14 @@ constToken = tokenPrim show update_pos get_token where
   get_token Const   = Just Const
   get_token _       = Nothing
 
+beginExpToken = tokenPrim show update_pos get_token where
+  get_token BeginExp = Just BeginExp
+  get_token _        = Nothing
+
+endExpToken = tokenPrim show update_pos get_token where
+  get_token EndExp = Just BeginExp
+  get_token _      = Nothing
+
 intToken = tokenPrim show update_pos get_token where
   get_token (Int x) = Just (Int x)
   get_token _       = Nothing
@@ -63,18 +71,17 @@ program = do
             p <- preDecls
             d <- beginToken 
             a <- programToken 
-            b <- idToken 
-            c <- decls
             e <- stmts
             f <- endToken
             g <- programToken 
             eof
-            return (p ++ [d] ++ a:[b] ++ c ++ e ++ f:[g])
+            return (p ++ [d] ++ [a] ++ e ++ f:[g])
 
 -- Const declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
 preDecls = do
-          first <- constDecl <|> varDecl <|> voidTokens
+          first <- constDecl <|> varDecl <|> function 
+                    <|> voidTokens
           next <- remaining_preDecls <|> voidTokens
           return (first ++ next)
 
@@ -98,18 +105,6 @@ constDecl = do
             liftIO (print s)
             return (c:a:b:[e])
 
--- Var declarations
-decls :: ParsecT [Token] [(Token,Token)] IO([Token])
-decls = do
-          first <- varDecl
-          next <- remaining_decls
-          return (first ++ next)
-
-remaining_decls :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_decls = (do a <- varDecl 
-                      b <- remaining_decls
-                      return (a ++ b)) <|> (return [])
-
 varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
             a <- typeToken
@@ -119,6 +114,14 @@ varDecl = do
             s <- getState
             liftIO (print s)
             return (a:b:[e])
+
+function :: ParsecT [Token] [(Token,Token)] IO([Token])
+function = do
+            a <- typeToken
+            b <- idToken
+            c <- beginExpToken
+            d <- endExpToken
+            return a:[b]
 
 stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
 stmts = do
