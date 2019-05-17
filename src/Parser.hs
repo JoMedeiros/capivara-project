@@ -44,11 +44,17 @@ constToken = tokenPrim show update_pos get_token where
   get_token Const   = Just Const
   get_token _       = Nothing
 
-beginExpToken = tokenPrim show update_pos get_token where
+functionToken :: ParsecT [Token] st IO (Token)
+functionToken = tokenPrim show update_pos get_token where
+  get_token Function   = Just Function
+  get_token _       = Nothing
+
+beginBracketToken :: ParsecT [Token] st IO (Token)
+beginBracketToken = tokenPrim show update_pos get_token where
   get_token BeginExp = Just BeginExp
   get_token _        = Nothing
 
-endExpToken = tokenPrim show update_pos get_token where
+endBracketToken = tokenPrim show update_pos get_token where
   get_token EndExp = Just BeginExp
   get_token _      = Nothing
 
@@ -80,13 +86,13 @@ program = do
 -- Const declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
 preDecls = do
-          first <- constDecl <|> varDecl <|> function 
+          first <- constDecl <|> varDecl <|> funk
                     <|> voidTokens
           next <- remaining_preDecls <|> voidTokens
           return (first ++ next)
 
 remaining_preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_preDecls = (do a <- constDecl <|> varDecl
+remaining_preDecls = (do a <- constDecl <|> varDecl <|> funk
                          b <- remaining_preDecls
                          return (a ++ b)) <|> (return [])
 
@@ -109,19 +115,22 @@ varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
             a <- typeToken
             b <- idToken
+            liftIO (print "Decraracao")
             e <- semiColonToken
             updateState(symtable_insert (b, get_default_value a))
             s <- getState
             liftIO (print s)
             return (a:b:[e])
 
-function :: ParsecT [Token] [(Token,Token)] IO([Token])
-function = do
+funk :: ParsecT [Token] [(Token,Token)] IO([Token])
+funk = do
+            f <- functionToken
             a <- typeToken
             b <- idToken
-            c <- beginExpToken
-            d <- endExpToken
-            return (a:b:c:[d])
+            c <- beginBracketToken
+            d <- endBracketToken
+            e <- semiColonToken
+            return (f:a:b:c:[d])
 
 stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
 stmts = do
