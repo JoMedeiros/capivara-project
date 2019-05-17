@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP #-}
 {-# LINE 1 "Tokens.x" #-}
 
-module Tokens where
+module Tokens (Token(..), AlexPosn(..), alexScanTokens, token_posn) where
 
 import System.IO
 import System.IO.Unsafe
@@ -19,6 +19,256 @@ import Data.Array.Base (unsafeAt)
 import Array
 #endif
 {-# LINE 1 "templates/wrappers.hs" #-}
+{-# LINE 1 "templates/wrappers.hs" #-}
+{-# LINE 1 "<built-in>" #-}
+{-# LINE 1 "<command-line>" #-}
+{-# LINE 9 "<command-line>" #-}
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+
+# 17 "/usr/include/stdc-predef.h" 3 4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LINE 9 "<command-line>" #-}
+{-# LINE 1 "/usr/lib/ghc/include/ghcversion.h" #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LINE 9 "<command-line>" #-}
+{-# LINE 1 "/tmp/ghc5f56_0/ghc_2.h" #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LINE 9 "<command-line>" #-}
+{-# LINE 1 "templates/wrappers.hs" #-}
 -- -----------------------------------------------------------------------------
 -- Alex wrapper code.
 --
@@ -31,21 +281,7 @@ import Array
 
 
 import Data.Word (Word8)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{-# LINE 28 "templates/wrappers.hs" #-}
 
 import Data.Char (ord)
 import qualified Data.Bits
@@ -79,83 +315,30 @@ type Byte = Word8
 -- The input type
 
 
+type AlexInput = (AlexPosn,     -- current position,
+                  Char,         -- previous char
+                  [Byte],       -- pending bytes on current char
+                  String)       -- current input string
 
+ignorePendingBytes :: AlexInput -> AlexInput
+ignorePendingBytes (p,c,_ps,s) = (p,c,[],s)
 
+alexInputPrevChar :: AlexInput -> Char
+alexInputPrevChar (_p,c,_bs,_s) = c
 
+alexGetByte :: AlexInput -> Maybe (Byte,AlexInput)
+alexGetByte (p,c,(b:bs),s) = Just (b,(p,c,bs,s))
+alexGetByte (_,_,[],[]) = Nothing
+alexGetByte (p,_,[],(c:s))  = let p' = alexMove p c
+                                  (b:bs) = utf8Encode c
+                              in p' `seq`  Just (b, (p', c, bs, s))
 
 
+{-# LINE 102 "templates/wrappers.hs" #-}
 
+{-# LINE 120 "templates/wrappers.hs" #-}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{-# LINE 138 "templates/wrappers.hs" #-}
 
 -- -----------------------------------------------------------------------------
 -- Token positions
@@ -168,296 +351,42 @@ type Byte = Word8
 -- assuming the usual eight character tab stops.
 
 
+data AlexPosn = AlexPn !Int !Int !Int
+        deriving (Eq,Show)
 
+alexStartPos :: AlexPosn
+alexStartPos = AlexPn 0 1 1
 
-
-
-
-
-
-
-
-
+alexMove :: AlexPosn -> Char -> AlexPosn
+alexMove (AlexPn a l c) '\t' = AlexPn (a+1)  l     (((c+alex_tab_size-1) `div` alex_tab_size)*alex_tab_size+1)
+alexMove (AlexPn a l _) '\n' = AlexPn (a+1) (l+1)   1
+alexMove (AlexPn a l c) _    = AlexPn (a+1)  l     (c+1)
 
 
 -- -----------------------------------------------------------------------------
 -- Default monad
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{-# LINE 274 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Monad (with ByteString input)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{-# LINE 379 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Basic wrapper
 
-
-type AlexInput = (Char,[Byte],String)
-
-alexInputPrevChar :: AlexInput -> Char
-alexInputPrevChar (c,_,_) = c
-
--- alexScanTokens :: String -> [token]
-alexScanTokens str = go ('\n',[],str)
-  where go inp__@(_,_bs,s) =
-          case alexScan inp__ 0 of
-                AlexEOF -> []
-                AlexError _ -> error "lexical error"
-                AlexSkip  inp__' _ln     -> go inp__'
-                AlexToken inp__' len act -> act (take len s) : go inp__'
-
-alexGetByte :: AlexInput -> Maybe (Byte,AlexInput)
-alexGetByte (c,(b:bs),s) = Just (b,(c,bs,s))
-alexGetByte (_,[],[])    = Nothing
-alexGetByte (_,[],(c:s)) = case utf8Encode c of
-                             (b:bs) -> Just (b, (c, bs, s))
-                             [] -> Nothing
-
+{-# LINE 406 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Basic wrapper, ByteString version
 
+{-# LINE 425 "templates/wrappers.hs" #-}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{-# LINE 440 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
@@ -466,50 +395,27 @@ alexGetByte (_,[],(c:s)) = case utf8Encode c of
 -- Adds text positions to the basic model.
 
 
-
-
-
-
-
-
-
-
+--alexScanTokens :: String -> [token]
+alexScanTokens str0 = go (alexStartPos,'\n',[],str0)
+  where go inp__@(pos,_,_,str) =
+          case alexScan inp__ 0 of
+                AlexEOF -> []
+                AlexError ((AlexPn _ line column),_,_,_) -> error $ "lexical error at line " ++ (show line) ++ ", column " ++ (show column)
+                AlexSkip  inp__' _ln     -> go inp__'
+                AlexToken inp__' len act -> act pos (take len str) : go inp__'
 
 
 
 -- -----------------------------------------------------------------------------
 -- Posn wrapper, ByteString version
 
-
-
-
-
-
-
-
-
-
-
-
+{-# LINE 473 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- GScan wrapper
 
 -- For compatibility with previous versions of Alex, and because we can.
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 alex_tab_size :: Int
 alex_tab_size = 8
@@ -18996,39 +18902,73 @@ alex_actions = array (0 :: Int, 101)
 
 -- The token type:
 data Token =
-  Program |
-  Begin   |
-  End     |
-  Colon   |
-  SemiColon |
-  Assign    | 
-  Const     |
-  If  |
-  Then |
-  Write |
-  BeginScope  |
-  EndScope    |
-  BeginExp    |
-  EndExp      |
-  BeginList   |
-  EndList     |
-  Plus        |
-  Minus       |
-  Mult        |
-  Div         |
-  Elif        |
-  Else        |
-  Switch      |
-  Case        |
-  OpOr        |
-  OpAnd       |
-  Greater     |
-  Less        |
-  Type        String|
-  Id          String|
-  Int         Int|
-  String      String
+  Program AlexPosn|
+  Begin   AlexPosn|
+  End     AlexPosn|
+  Colon   AlexPosn|
+  SemiColon AlexPosn|
+  Assign    AlexPosn| 
+  Const     AlexPosn|
+  If  AlexPosn|
+  Then AlexPosn|
+  Write AlexPosn|
+  BeginScope AlexPosn|
+  EndScope   AlexPosn|
+  BeginExp   AlexPosn|
+  EndExp     AlexPosn|
+  BeginList  AlexPosn|
+  EndList    AlexPosn|
+  Plus       AlexPosn|
+  Minus      AlexPosn|
+  Mult       AlexPosn|
+  Div        AlexPosn|
+  Elif       AlexPosn|
+  Else       AlexPosn|
+  Switch     AlexPosn|
+  Case       AlexPosn|
+  OpOr       AlexPosn|
+  OpAnd      AlexPosn|
+  Greater    AlexPosn|
+  Less       AlexPosn|
+  Type       AlexPosn String|
+  Id         AlexPosn String|
+  Int        AlexPosn Int|
+  String     AlexPosn String
   deriving (Eq,Show)
+
+token_posn (BeginScope p) = p
+token_posn (Program p )= p
+token_posn (Begin   p )= p
+token_posn (End     p )= p
+token_posn (Colon   p )= p
+token_posn (SemiColon p)= p
+token_posn (Assign    p)= p  
+token_posn (Const     p)= p
+token_posn (If  p)= p
+token_posn (Then p)= p
+token_posn (Write p)= p
+token_posn (BeginScope  p)= p
+token_posn (EndScope    p)= p
+token_posn (BeginExp    p)= p
+token_posn (EndExp      p)= p
+token_posn (BeginList   p)= p
+token_posn (EndList     p)= p
+token_posn (Plus        p)= p
+token_posn (Minus       p)= p
+token_posn (Mult        p)= p
+token_posn (Div         p)= p
+token_posn (Elif        p)= p
+token_posn (Else        p)= p
+token_posn (Switch      p)= p
+token_posn (Case        p)= p
+token_posn (OpOr        p)= p
+token_posn (OpAnd       p)= p
+token_posn (Greater     p)= p
+token_posn (Less        p)= p
+token_posn (Type   p _)    = p
+token_posn (Id     p _)    = p
+token_posn (Int    p _)    = p
+token_posn (String p _)    = p
 
 getTokens fn = unsafePerformIO (getTokensAux fn)
 
@@ -19036,50 +18976,300 @@ getTokensAux fn = do {fh <- openFile fn ReadMode;
                       s <- hGetContents fh;
                       return (alexScanTokens s)}
 
-alex_action_2 =  \s -> Begin
-alex_action_3 =  \s -> Program 
-alex_action_4 =  \s -> End
-alex_action_5 =  \s -> Colon
-alex_action_6 =  \s -> SemiColon
-alex_action_7 =  \s -> Const
-alex_action_8 =  \s -> Type s
-alex_action_9 =  \s -> Assign
-alex_action_10 =  \s -> Then
-alex_action_11 =  \s -> Write
-alex_action_12 =  \s -> Greater
-alex_action_13 =  \s -> BeginScope
-alex_action_14 =  \s -> EndScope
-alex_action_15 =  \s -> BeginExp
-alex_action_16 =  \s -> EndExp
-alex_action_17 =  \s -> BeginList
-alex_action_18 =  \s -> EndList
-alex_action_19 =  \s -> Colon
-alex_action_20 =  \s -> SemiColon
-alex_action_21 =  \s -> Type s
-alex_action_22 =  \s -> Type s
-alex_action_23 =  \s -> Type s
-alex_action_24 =  \s -> Type s
-alex_action_25 =  \s -> Type s
-alex_action_26 =  \s -> Type s
-alex_action_27 =  \s -> Type s
-alex_action_28 =  \s -> Type s
-alex_action_29 =  \s -> Assign
-alex_action_30 =  \s -> Greater
-alex_action_31 =  \s -> Less
-alex_action_32 =  \s -> Plus
-alex_action_33 =  \s -> Minus
-alex_action_34 =  \s -> Mult
-alex_action_35 =  \s -> Div
-alex_action_36 =  \s -> If
-alex_action_37 =  \s -> Elif
-alex_action_38 =  \s -> Else
-alex_action_39 =  \s -> Switch
-alex_action_40 =  \s -> Case
-alex_action_41 =  \s -> OpOr
-alex_action_42 =  \s -> OpAnd
-alex_action_43 =  \s -> Int (read s) 
-alex_action_44 =  \s -> Id s 
-alex_action_45 =  \s -> String s
+alex_action_2 =  \p s -> Begin
+alex_action_3 =  \p s -> Program 
+alex_action_4 =  \p s -> End
+alex_action_5 =  \p s -> Colon
+alex_action_6 =  \p s -> SemiColon
+alex_action_7 =  \p s -> Const
+alex_action_8 =  \p s -> Type s
+alex_action_9 =  \p s -> Assign
+alex_action_10 =  \p s -> Then
+alex_action_11 =  \p s -> Write
+alex_action_12 =  \p s -> Greater
+alex_action_13 =  \p s -> BeginScope
+alex_action_14 =  \p s -> EndScope
+alex_action_15 =  \p s -> BeginExp
+alex_action_16 =  \p s -> EndExp
+alex_action_17 =  \p s -> BeginList
+alex_action_18 =  \p s -> EndList
+alex_action_19 =  \p s -> Colon
+alex_action_20 =  \p s -> SemiColon
+alex_action_21 =  \p s -> Type s
+alex_action_22 =  \p s -> Type s
+alex_action_23 =  \p s -> Type s
+alex_action_24 =  \p s -> Type s
+alex_action_25 =  \p s -> Type s
+alex_action_26 =  \p s -> Type s
+alex_action_27 =  \p s -> Type s
+alex_action_28 =  \p s -> Type s
+alex_action_29 =  \p s -> Assign
+alex_action_30 =  \p s -> Greater
+alex_action_31 =  \p s -> Less
+alex_action_32 =  \p s -> Plus
+alex_action_33 =  \p s -> Minus
+alex_action_34 =  \p s -> Mult
+alex_action_35 =  \p s -> Div
+alex_action_36 =  \p s -> If
+alex_action_37 =  \p s -> Elif
+alex_action_38 =  \p s -> Else
+alex_action_39 =  \p s -> Switch
+alex_action_40 =  \p s -> Case
+alex_action_41 =  \p s -> OpOr
+alex_action_42 =  \p s -> OpAnd
+alex_action_43 =  \p s -> Int (read s) 
+alex_action_44 =  \p s -> Id s 
+alex_action_45 =  \p s -> String s
+{-# LINE 1 "templates/GenericTemplate.hs" #-}
+{-# LINE 1 "templates/GenericTemplate.hs" #-}
+{-# LINE 1 "<built-in>" #-}
+{-# LINE 1 "<command-line>" #-}
+{-# LINE 8 "<command-line>" #-}
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+
+# 17 "/usr/include/stdc-predef.h" 3 4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LINE 8 "<command-line>" #-}
+{-# LINE 1 "/usr/lib/ghc/include/ghcversion.h" #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LINE 8 "<command-line>" #-}
+{-# LINE 1 "/tmp/ghc8a9b_0/ghc_2.h" #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LINE 8 "<command-line>" #-}
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 -- -----------------------------------------------------------------------------
 -- ALEX TEMPLATE
@@ -19090,101 +19280,19 @@ alex_action_45 =  \s -> String s
 -- -----------------------------------------------------------------------------
 -- INTERNALS and main scanner engine
 
+{-# LINE 21 "templates/GenericTemplate.hs" #-}
 
+{-# LINE 51 "templates/GenericTemplate.hs" #-}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{-# LINE 72 "templates/GenericTemplate.hs" #-}
 alexIndexInt16OffAddr arr off = arr ! off
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{-# LINE 93 "templates/GenericTemplate.hs" #-}
 alexIndexInt32OffAddr arr off = arr ! off
 
 
-
-
-
-
-
-
-
-
-
+{-# LINE 105 "templates/GenericTemplate.hs" #-}
 quickIndex arr i = arr ! i
 
 
@@ -19316,4 +19424,3 @@ alexRightContext (sc) user__ _ _ input__ =
         -- TODO: there's no need to find the longest
         -- match when checking the right context, just
         -- the first match will do.
-

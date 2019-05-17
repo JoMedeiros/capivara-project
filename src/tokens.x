@@ -1,5 +1,11 @@
+--{
+--  module Main (main, Token(..), AlexPosn(..), alexScanTokens, token_posn) where
+--}
 {
-  module Main (main, Token(..), AlexPosn(..), alexScanTokens, token_posn) where
+module Tokens where
+
+import System.IO
+import System.IO.Unsafe
 }
 
 %wrapper "posn"
@@ -19,6 +25,7 @@ tokens :-
   "]"                                  { \p s -> EndList}
   ":"                                  { \p s -> Colon}
   ";"                                  { \p s -> SemiColon}
+  const                                { \p s -> Const}
   int                                  { \p s -> Type s}
   float                                { \p s -> Type s}
   char                                 { \p s -> Type s}
@@ -71,6 +78,7 @@ data Token =
   OpOr       AlexPosn	|
   OpAnd      AlexPosn	|
   Greater    AlexPosn	|
+  Const      AlexPosn |
   Less       AlexPosn	|
   Type       AlexPosn	String|
   Id         AlexPosn String|
@@ -105,7 +113,7 @@ token_posn (Id         p _) = p
 token_posn (Int        p _) = p
 token_posn (String     p _) = p
 
-main = do
-  s <- getContents
-  print (alexScanTokens s)
-}
+--main = do
+--  s <- getContents
+--  print (alexScanTokens s)
+--}

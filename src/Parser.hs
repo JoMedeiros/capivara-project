@@ -121,7 +121,7 @@ function = do
             b <- idToken
             c <- beginExpToken
             d <- endExpToken
-            return a:[b]
+            return (a:b:c:[d])
 
 stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
 stmts = do
