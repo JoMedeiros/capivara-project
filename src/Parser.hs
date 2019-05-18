@@ -86,13 +86,13 @@ program = do
 -- Const declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
 preDecls = do
-          first <- constDecl <|> varDecl <|> funk
+          first <- constDecl <|> varDecl <|> function
                     <|> voidTokens
           next <- remaining_preDecls <|> voidTokens
           return (first ++ next)
 
 remaining_preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_preDecls = (do a <- constDecl <|> varDecl <|> funk
+remaining_preDecls = (do a <- constDecl <|> varDecl <|> function
                          b <- remaining_preDecls
                          return (a ++ b)) <|> (return [])
 
@@ -122,8 +122,8 @@ varDecl = do
             liftIO (print s)
             return (a:b:[e])
 
-funk :: ParsecT [Token] [(Token,Token)] IO([Token])
-funk = do
+function :: ParsecT [Token] [(Token,Token)] IO([Token])
+function = do
             f <- functionToken
             a <- typeToken
             b <- idToken

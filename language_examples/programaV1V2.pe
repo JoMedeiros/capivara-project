@@ -1,7 +1,7 @@
 -- Pre declarations
 int global_variable;
 const int global_constant;
-int helloWorld;
+function int helloWorld();
 
 begin program
   int x;

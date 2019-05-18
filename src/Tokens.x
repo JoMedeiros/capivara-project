@@ -19,7 +19,7 @@ tokens :-
   end                                  { \s -> End}
   :                                    { \s -> Colon}
   ";"                                  { \s -> SemiColon}
-  "funtion"                            { \s -> Function}
+  "function"                           { \s -> Function}
   const                                { \s -> Const}
   int                                  { \s -> Type s}
   =                                    { \s -> Assign}
