@@ -20,6 +20,7 @@ tokens :-
   :                                    { \s -> Colon}
   ";"                                  { \s -> SemiColon}
   "function"                           { \s -> Function}
+  "procedure"                          { \s -> Procedure}
   const                                { \s -> Const}
   int                                  { \s -> Type s}
   =                                    { \s -> Assign}
@@ -72,9 +73,10 @@ data Token =
   Assign    | 
   Const     |
   Function  |
-  If  |
-  Then |
-  Write |
+  Procedure |
+  If        |
+  Then      |
+  Write     |
   BeginScope  |
   EndScope    |
   BeginExp    |

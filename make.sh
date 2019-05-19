@@ -4,7 +4,7 @@ cd src
 alex Tokens.x
 ghc Parser.hs
 
-#rm Takens.hs Parser.hi Parser.o Tokens.hi Tokens.o
+rm *.hi *.o
 
 #mkdir ../bin
 #mv Parser ../bin

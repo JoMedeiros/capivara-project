@@ -1,74 +1,12 @@
 module Main (main) where
 
 import Tokens
+import Lexer
 import Text.Parsec
 import Control.Monad.IO.Class
 
 import System.IO.Unsafe
 
-----------------------------------------
--- Tokens
-----------------------------------------
-
-programToken = tokenPrim show update_pos get_token where
-  get_token Program = Just Program
-  get_token _       = Nothing
-
-idToken = tokenPrim show update_pos get_token where
-  get_token (Id x) = Just (Id x)
-  get_token _      = Nothing
-
-beginToken = tokenPrim show update_pos get_token where
-  get_token Begin = Just Begin
-  get_token _     = Nothing
-
-endToken = tokenPrim show update_pos get_token where
-  get_token End = Just End
-  get_token _   = Nothing
-
-semiColonToken :: ParsecT [Token] st IO (Token)
-semiColonToken = tokenPrim show update_pos get_token where
-  get_token SemiColon = Just SemiColon
-  get_token _         = Nothing
-
---colonToken = tokenPrim show update_pos get_token where
---  get_token Colon = Just Colon
---  get_token _     = Nothing
-
-assignToken = tokenPrim show update_pos get_token where
-  get_token Assign = Just Assign
-  get_token _      = Nothing
-
-constToken :: ParsecT [Token] st IO (Token)
-constToken = tokenPrim show update_pos get_token where
-  get_token Const   = Just Const
-  get_token _       = Nothing
-
-functionToken :: ParsecT [Token] st IO (Token)
-functionToken = tokenPrim show update_pos get_token where
-  get_token Function   = Just Function
-  get_token _       = Nothing
-
-beginBracketToken :: ParsecT [Token] st IO (Token)
-beginBracketToken = tokenPrim show update_pos get_token where
-  get_token BeginExp = Just BeginExp
-  get_token _        = Nothing
-
-endBracketToken = tokenPrim show update_pos get_token where
-  get_token EndExp = Just BeginExp
-  get_token _      = Nothing
-
-intToken = tokenPrim show update_pos get_token where
-  get_token (Int x) = Just (Int x)
-  get_token _       = Nothing
-
-typeToken = tokenPrim show update_pos get_token where
-  get_token (Type x) = Just (Type x)
-  get_token _        = Nothing 
-
-update_pos :: SourcePos -> Token -> [Token] -> SourcePos
-update_pos pos _ (tok:_) = pos -- necessita melhoria
-update_pos pos _ []      = pos  
 
 -- parsers para os não-terminais
 
@@ -115,7 +53,6 @@ varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
             a <- typeToken
             b <- idToken
-            liftIO (print "Decraracao")
             e <- semiColonToken
             updateState(symtable_insert (b, get_default_value a))
             s <- getState
