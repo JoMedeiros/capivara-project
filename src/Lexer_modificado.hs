@@ -14,6 +14,8 @@ import System.IO.Unsafe
 -- Tokens
 ----------------------------------------
 
+-- Generalizing a token function
+
 tokenize :: Token -> ParsecT [Token] st IO (Token)
 tokenize token = tokenPrim show update_pos get_token where
   get_token token = Just token
@@ -34,18 +36,17 @@ colonToken = tokenize Colon
 semiColonToken :: ParsecT [Token] st IO (Token)
 semiColonToken = tokenize SemiColon
 
+commaToken :: ParsecT [Token] st IO (Token)
+commaToken = tokenize Comma
+
 assignToken :: ParsecT [Token] st IO (Token)
 assignToken = tokenize Assign
 
 constToken :: ParsecT [Token] st IO (Token)
-constToken = tokenPrim show update_pos get_token where
-  get_token Const   = Just Const
-  get_token _       = Nothing
+constToken = tokenize Const
 
 functionToken :: ParsecT [Token] st IO (Token)
-functionToken = tokenPrim show update_pos get_token where
-  get_token Function   = Just Function
-  get_token _       = Nothing
+functionToken = tokenize Function
 
 ifToken :: ParsecT [Token] st IO (Token)
 ifToken = tokenize If
@@ -163,11 +164,6 @@ floatToken = tokenPrim show update_pos get_token where
   get_token (Float x) = Just (Float x)
   get_token _       = Nothing
 
-----------------------------------------
---  Auxiliary Functions
-----------------------------------------
-
 update_pos :: SourcePos -> Token -> [Token] -> SourcePos
-update_pos pos _ (tok:_) = pos -- needs improvement
+update_pos pos _ (tok:_) = pos -- necessita melhoria
 update_pos pos _ []      = pos  
-

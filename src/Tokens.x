@@ -17,23 +17,19 @@ tokens :-
   begin                                { \s -> Begin}
   program                              { \s -> Program }
   end                                  { \s -> End}
-  :                                    { \s -> Colon}
-  ";"                                  { \s -> SemiColon}
-  "function"                           { \s -> Function}
-  "procedure"                          { \s -> Procedure}
   const                                { \s -> Const}
-  int                                  { \s -> Type s}
-  =                                    { \s -> Assign}
+  function                             { \s -> Function}
   then                                 { \s -> Then}
   write                                { \s -> Write}
   "{"                                  { \s -> BeginScope}
   "}"                                  { \s -> EndScope}
-  "("                                  { \s -> BeginExp}
-  ")"                                  { \s -> EndExp}
+  "("                                  { \s -> BeginBracket}
+  ")"                                  { \s -> EndBracket}
   "["                                  { \s -> BeginList}
   "]"                                  { \s -> EndList}
   ":"                                  { \s -> Colon}
   ";"                                  { \s -> SemiColon}
+  ","                                  { \s -> Comma} 
   int                                  { \s -> Type s}
   float                                { \s -> Type s}
   char                                 { \s -> Type s}
@@ -43,66 +39,87 @@ tokens :-
   Mat                                  { \s -> Type s}
   Table                                { \s -> Type s}
   "="                                  { \s -> Assign}
+  "=="                                 { \s -> Equal}
+  "!="                                 { \s -> Different}
   ">"                                  { \s -> Greater}
   "<"                                  { \s -> Less}
+  ">="                                 { \s -> GreaterOrEqual}
+  "<="                                 { \s -> LessOrEqual}
+  "++"                                 { \s -> PlusPlus}
   "+"                                  { \s -> Plus}
+  "--"                                 { \s -> MinusMinus}
   "-"                                  { \s -> Minus}
+  "**"                                 { \s -> Power}
   "*"                                  { \s -> Mult}
   "/"                                  { \s -> Div}
+  "mod"                                { \s -> Mod}
+  "true"                               { \s -> True_}
+  "false"                              { \s -> False_}
   if                                   { \s -> If}
   elif                                 { \s -> Elif}
   else                                 { \s -> Else}
   switch                               { \s -> Switch}
   case                                 { \s -> Case}
   or                                   { \s -> OpOr}
+  xor                                  { \s -> OpXor}
   and                                  { \s -> OpAnd}
   $digit+                              { \s -> Int (read s) }
+  ^\d*\.?\d*$                          { \s -> Float (read s) }
   $alpha [$alpha $digit \_ \']*        { \s -> Id s }
   \" $alpha [. [^\"] \']* \"           { \s -> String s}
-
 {
 -- Each action has type :: String -> Token
-
 -- The token type:
 data Token =
-  Program |
-  Begin   |
-  End     |
-  Colon   |
-  SemiColon |
-  Assign    | 
-  Const     |
-  Function  |
-  Procedure |
-  If        |
-  Then      |
-  Write     |
-  BeginScope  |
-  EndScope    |
-  BeginExp    |
-  EndExp      |
-  BeginList   |
-  EndList     |
-  Plus        |
-  Minus       |
-  Mult        |
-  Div         |
-  Elif        |
-  Else        |
-  Switch      |
-  Case        |
-  OpOr        |
-  OpAnd       |
-  Greater     |
-  Less        |
-  Type        String|
-  Id          String|
-  Int         Int|
-  String      String
+  Program         |
+  Begin           |
+  End             |
+  Colon           |
+  SemiColon       |
+  Comma           |
+  Assign          | 
+  Const           |
+  Function        |
+  If              |
+  Then            |
+  Write           |
+  BeginScope      |
+  EndScope        |
+  BeginBracket    |
+  EndBracket      |
+  BeginList       |
+  EndList         |
+  PlusPlus        |
+  Plus            |
+  MinusMinus      |
+  Minus           |
+  Mult            |
+  Div             |
+  Mod             |
+  True_           |
+  False_          |
+  Power           |
+  Elif            |
+  Else            |
+  Switch          |
+  Case            |
+  OpOr            |
+  OpXor           |
+  OpAnd           |
+  Equal           |
+  Different       |
+  Greater         |
+  Less            |
+  GreaterOrEqual  |
+  LessOrEqual     |
+  Type String     |
+  Id   String     |
+  Int  Int        |
+  Float Float     |
+  String   String
   deriving (Eq,Show)
 
 getTokens fn = unsafePerformIO (getTokensAux fn)
-
 getTokensAux fn = do {fh <- openFile fn ReadMode;
                       s <- hGetContents fh;
                       return (alexScanTokens s)}
