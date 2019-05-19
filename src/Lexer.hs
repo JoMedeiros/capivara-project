@@ -95,12 +95,6 @@ divToken = tokenize Div
 modToken :: ParsecT [Token] st IO (Token)
 modToken = tokenize Mod
 
-true_Token :: ParsecT [Token] st IO (Token)
-true_Token = tokenize True_
-
-false_Token :: ParsecT [Token] st IO (Token)
-false_Token = tokenize False_
-
 powerToken :: ParsecT [Token] st IO (Token)
 powerToken = tokenize Power
 
@@ -161,6 +155,21 @@ intToken = tokenPrim show update_pos get_token where
 floatToken :: ParsecT [Token] st IO (Token)
 floatToken = tokenPrim show update_pos get_token where
   get_token (Float x) = Just (Float x)
+  get_token _       = Nothing
+
+booleanToken :: ParsecT [Token] st IO (Token)
+booleanToken = tokenPrim show update_pos get_token where
+  get_token (Boolean x) = Just (Boolean x)
+  get_token _       = Nothing
+
+charToken :: ParsecT [Token] st IO (Token)
+charToken = tokenPrim show update_pos get_token where
+  get_token (Char x) = Just (Char x)
+  get_token _       = Nothing
+
+stringToken :: ParsecT [Token] st IO (Token)
+stringToken = tokenPrim show update_pos get_token where
+  get_token (String x) = Just (String x)
   get_token _       = Nothing
 
 ----------------------------------------

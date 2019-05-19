@@ -53,8 +53,6 @@ tokens :-
   "*"                                  { \s -> Mult}
   "/"                                  { \s -> Div}
   "mod"                                { \s -> Mod}
-  "true"                               { \s -> True_}
-  "false"                              { \s -> False_}
   if                                   { \s -> If}
   elif                                 { \s -> Elif}
   else                                 { \s -> Else}
@@ -64,7 +62,10 @@ tokens :-
   xor                                  { \s -> OpXor}
   and                                  { \s -> OpAnd}
   $digit+                              { \s -> Int (read s) }
-  ^\d*\.?\d*$                          { \s -> Float (read s) }
+  $digit+\.$digit                      { \s -> Float (read s) }
+  \'.\'                                { \s -> Char (read s) }
+  "true"                               { \s -> Boolean s}
+  "false"                              { \s -> Boolean s}
   $alpha [$alpha $digit \_ \']*        { \s -> Id s }
   \" $alpha [. [^\"] \']* \"           { \s -> String s}
 {
@@ -96,8 +97,6 @@ data Token =
   Mult            |
   Div             |
   Mod             |
-  True_           |
-  False_          |
   Power           |
   Elif            |
   Else            |
@@ -116,6 +115,8 @@ data Token =
   Id   String     |
   Int  Int        |
   Float Float     |
+  Char Char       |
+  Boolean String  |
   String   String
   deriving (Eq,Show)
 

@@ -2,6 +2,7 @@ module Main (main) where
 
 import Tokens
 import Lexer
+import Expressions
 import Text.Parsec
 import Control.Monad.IO.Class
 
@@ -21,7 +22,7 @@ program = do
             eof
             return (p ++ [d] ++ [a] ++ e ++ f:[g])
 
--- Const declarations
+-- Pre declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
 preDecls = do
           first <- constDecl <|> varDecl <|> function
@@ -40,14 +41,16 @@ voidTokens =  do
 
 constDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 constDecl = do
-            c <- constToken
+            z <- constToken
             a <- typeToken
             b <- idToken
+            i <- assignToken
+            c <- expression
             e <- semiColonToken
             updateState(symtable_insert (b, get_default_value a))
             s <- getState
             liftIO (print s)
-            return (c:a:b:[e])
+            return (z:a:b:i:c ++ [e])
 
 varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
@@ -79,7 +82,8 @@ assign :: ParsecT [Token] [(Token,Token)] IO([Token])
 assign = do
           a <- idToken
           b <- assignToken
-          c <- intToken
+          c <- intToken <|> floatToken <|> booleanToken <|> charToken 
+                <|> stringToken
           d <- semiColonToken
           updateState(symtable_update (a, c))
           s <- getState
@@ -94,7 +98,11 @@ remaining_stmts = (do a <- assign <|> varDecl
 -- funções para a tabela de símbolos
 
 get_default_value :: Token -> Token
-get_default_value (Type "int") = Int 0          
+get_default_value (Type "int") = Int 0
+get_default_value (Type "float") = Float 0.0
+get_default_value (Type "boolean") = Boolean "false"
+get_default_value (Type "char") = Char 'a'
+get_default_value (Type "string") = String ""
 
 symtable_insert :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
 symtable_insert symbol []  = [symbol]
