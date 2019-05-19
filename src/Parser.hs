@@ -6,7 +6,7 @@ import Text.Parsec
 import Control.Monad.IO.Class
 
 import System.IO.Unsafe
-
+import System.Environment
 
 -- parsers para os não-terminais
 
@@ -119,7 +119,10 @@ parser :: [Token] -> IO (Either ParseError [Token])
 parser tokens = runParserT program [] "Error message" tokens
 
 main :: IO ()
-main = case unsafePerformIO (parser (getTokens "../language_examples/programaV1V2.pe")) of
+main = do
+       (file:args) <-getArgs
+       putStrLn file
+       case unsafePerformIO (parser (getTokens file)) of
             { Left err -> print err; 
               Right ans -> print ans
             }
