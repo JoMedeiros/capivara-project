@@ -1,68 +1,12 @@
 module Main (main) where
 
 import Tokens
+import Lexer
 import Text.Parsec
 import Control.Monad.IO.Class
 
 import System.IO.Unsafe
-
-----------------------------------------
--- Tokens
-----------------------------------------
-
-programToken = tokenPrim show update_pos get_token where
-  get_token Program = Just Program
-  get_token _       = Nothing
-
-idToken = tokenPrim show update_pos get_token where
-  get_token (Id x) = Just (Id x)
-  get_token _      = Nothing
-
-beginToken = tokenPrim show update_pos get_token where
-  get_token Begin = Just Begin
-  get_token _     = Nothing
-
-endToken = tokenPrim show update_pos get_token where
-  get_token End = Just End
-  get_token _   = Nothing
-
-semiColonToken :: ParsecT [Token] st IO (Token)
-semiColonToken = tokenPrim show update_pos get_token where
-  get_token SemiColon = Just SemiColon
-  get_token _         = Nothing
-
---colonToken = tokenPrim show update_pos get_token where
---  get_token Colon = Just Colon
---  get_token _     = Nothing
-
-assignToken = tokenPrim show update_pos get_token where
-  get_token Assign = Just Assign
-  get_token _      = Nothing
-
-constToken :: ParsecT [Token] st IO (Token)
-constToken = tokenPrim show update_pos get_token where
-  get_token Const   = Just Const
-  get_token _       = Nothing
-
-beginExpToken = tokenPrim show update_pos get_token where
-  get_token BeginExp = Just BeginExp
-  get_token _        = Nothing
-
-endExpToken = tokenPrim show update_pos get_token where
-  get_token EndExp = Just BeginExp
-  get_token _      = Nothing
-
-intToken = tokenPrim show update_pos get_token where
-  get_token (Int x) = Just (Int x)
-  get_token _       = Nothing
-
-typeToken = tokenPrim show update_pos get_token where
-  get_token (Type x) = Just (Type x)
-  get_token _        = Nothing 
-
-update_pos :: SourcePos -> Token -> [Token] -> SourcePos
-update_pos pos _ (tok:_) = pos -- necessita melhoria
-update_pos pos _ []      = pos  
+import System.Environment
 
 -- parsers para os não-terminais
 
@@ -80,13 +24,13 @@ program = do
 -- Const declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
 preDecls = do
-          first <- constDecl <|> varDecl <|> function 
+          first <- constDecl <|> varDecl <|> function
                     <|> voidTokens
           next <- remaining_preDecls <|> voidTokens
           return (first ++ next)
 
 remaining_preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_preDecls = (do a <- constDecl <|> varDecl
+remaining_preDecls = (do a <- constDecl <|> varDecl <|> function
                          b <- remaining_preDecls
                          return (a ++ b)) <|> (return [])
 
@@ -117,11 +61,13 @@ varDecl = do
 
 function :: ParsecT [Token] [(Token,Token)] IO([Token])
 function = do
+            f <- functionToken
             a <- typeToken
             b <- idToken
-            c <- beginExpToken
-            d <- endExpToken
-            return (a:b:c:[d])
+            c <- beginBracketToken
+            d <- endBracketToken
+            e <- semiColonToken
+            return (f:a:b:c:[d])
 
 stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
 stmts = do
@@ -173,7 +119,10 @@ parser :: [Token] -> IO (Either ParseError [Token])
 parser tokens = runParserT program [] "Error message" tokens
 
 main :: IO ()
-main = case unsafePerformIO (parser (getTokens "../language_examples/programaV1V2.pe")) of
+main = do
+       (file:args) <-getArgs
+       putStrLn file
+       case unsafePerformIO (parser (getTokens file)) of
             { Left err -> print err; 
               Right ans -> print ans
             }

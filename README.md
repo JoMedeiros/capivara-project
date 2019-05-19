@@ -2,6 +2,10 @@
 
 # Compiling and Running
 
+To compile run the script:
+
+`./make.sh`
+
 # Milestones
 
 TODOs
