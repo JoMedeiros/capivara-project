@@ -31,6 +31,9 @@ endToken = tokenize End
 colonToken :: ParsecT [Token] st IO (Token)
 colonToken = tokenize Colon
 
+commaToken :: ParsecT [Token] st IO (Token)
+commaToken = tokenize Comma
+
 semiColonToken :: ParsecT [Token] st IO (Token)
 semiColonToken = tokenize SemiColon
 

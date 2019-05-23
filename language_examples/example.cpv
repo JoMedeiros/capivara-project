@@ -1,13 +1,19 @@
--- Pre declarations
-program main
-var x : int;
-var y : int;
-var z : int;
 
--- Program Start
+-- Pre declarations
+int global_variable;
+string name;
+const int global_constant = 1;
+function int helloWorld();
+char type;
+
 begin program
-   x := 3;
-   y := 666;
-   z := 777;
+  name = "Josivan";
+  int x;
+  float y;
+  boolean z;
+  x = 3;
+  int alpha;
+  y = 66.6;
+  z = true;
 end program
 

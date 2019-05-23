@@ -62,7 +62,7 @@ tokens :-
   xor                                  { \s -> OpXor}
   and                                  { \s -> OpAnd}
   $digit+                              { \s -> Int (read s) }
-  $digit+\.$digit                      { \s -> Float (read s) }
+  $digit+\.$digit+                     { \s -> Float (read s) }
   \'.\'                                { \s -> Char (read s) }
   "true"                               { \s -> Boolean s}
   "false"                              { \s -> Boolean s}

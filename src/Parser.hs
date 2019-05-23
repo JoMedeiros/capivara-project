@@ -24,16 +24,9 @@ program = do
 
 -- Pre declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-preDecls = do
-          first <- constDecl <|> varDecl <|> function
-                    <|> voidTokens
-          next <- remaining_preDecls <|> voidTokens
-          return (first ++ next)
-
-remaining_preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_preDecls = (do a <- constDecl <|> varDecl <|> function
-                         b <- remaining_preDecls
-                         return (a ++ b)) <|> (return [])
+preDecls = (do a <- constDecl <|> varDecl <|> function
+               b <- preDecls
+               return (a ++ b)) <|> (return [])
 
 voidTokens :: ParsecT [Token] [(Token,Token)] IO([Token])
 voidTokens =  do
@@ -68,15 +61,38 @@ function = do
             a <- typeToken
             b <- idToken
             c <- beginBracketToken
+--            p <- paramsList
             d <- endBracketToken
             e <- semiColonToken
-            return (f:a:b:c:[d])
+            return (f:a:b:[c] ++ d:[e])
+
+--paramsList :: ParsecT [Token] [(Token,Token)] IO([Token])
+--paramsList = (do
+--               a <- typeToken
+--               b <- idToken
+--               return (a:[b])) <|>
+--             (do
+--               c <- commaToken
+--               a <- typeToken
+--               b <- idToken
+--               c <- paramsList
+--               return (a:b:c)) <|> (return [])
+               --b <- colonToken
+               --c <- identifiersList
+               --d <- semiColonToken
+               --e <- paramsList
+               --return (a:b:c ++ d:e)) <|> (return [])
+
+identifiersList = (do
+                    a <- idToken
+                    b <- commaToken
+                    c <- identifiersList
+                    return (a:b:c)) <|> (return [])
 
 stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
-stmts = do
-          first <- assign <|> varDecl
-          next <- remaining_stmts
-          return (first ++ next)
+stmts = (do a <- assign <|> varDecl
+            b <- stmts
+            return (a ++ b)) <|> (return [])
 
 assign :: ParsecT [Token] [(Token,Token)] IO([Token])
 assign = do
@@ -89,11 +105,6 @@ assign = do
           s <- getState
           liftIO (print s)
           return (a:b:c:[d])
-
-remaining_stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_stmts = (do a <- assign <|> varDecl
-                      b <- remaining_stmts
-                      return (a ++ b)) <|> (return [])
 
 -- funções para a tabela de símbolos
 
