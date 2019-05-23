@@ -1,0 +1,19 @@
+
+-- Pre declarations
+int global_variable;
+string name;
+const int global_constant = 1;
+function int helloWorld();
+char type;
+
+begin program
+  name = "Josivan";
+  int x;
+  float y;
+  boolean z;
+  x = 3;
+  int alpha;
+  y = 66.6;
+  z = true;
+end program
+

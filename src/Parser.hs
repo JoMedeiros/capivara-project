@@ -2,6 +2,7 @@ module Main (main) where
 
 import Tokens
 import Lexer
+import Expressions
 import Text.Parsec
 import Control.Monad.IO.Class
 
@@ -21,18 +22,11 @@ program = do
             eof
             return (p ++ [d] ++ [a] ++ e ++ f:[g])
 
--- Const declarations
+-- Pre declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-preDecls = do
-          first <- constDecl <|> varDecl <|> function
-                    <|> voidTokens
-          next <- remaining_preDecls <|> voidTokens
-          return (first ++ next)
-
-remaining_preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_preDecls = (do a <- constDecl <|> varDecl <|> function
-                         b <- remaining_preDecls
-                         return (a ++ b)) <|> (return [])
+preDecls = (do a <- constDecl <|> varDecl <|> function
+               b <- preDecls
+               return (a ++ b)) <|> (return [])
 
 voidTokens :: ParsecT [Token] [(Token,Token)] IO([Token])
 voidTokens =  do
@@ -40,14 +34,16 @@ voidTokens =  do
 
 constDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 constDecl = do
-            c <- constToken
+            z <- constToken
             a <- typeToken
             b <- idToken
+            i <- assignToken
+            c <- expression
             e <- semiColonToken
             updateState(symtable_insert (b, get_default_value a))
             s <- getState
             liftIO (print s)
-            return (c:a:b:[e])
+            return (z:a:b:i:c ++ [e])
 
 varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
@@ -65,36 +61,59 @@ function = do
             a <- typeToken
             b <- idToken
             c <- beginBracketToken
+--            p <- paramsList
             d <- endBracketToken
             e <- semiColonToken
-            return (f:a:b:c:[d])
+            return (f:a:b:[c] ++ d:[e])
+
+--paramsList :: ParsecT [Token] [(Token,Token)] IO([Token])
+--paramsList = (do
+--               a <- typeToken
+--               b <- idToken
+--               return (a:[b])) <|>
+--             (do
+--               c <- commaToken
+--               a <- typeToken
+--               b <- idToken
+--               c <- paramsList
+--               return (a:b:c)) <|> (return [])
+               --b <- colonToken
+               --c <- identifiersList
+               --d <- semiColonToken
+               --e <- paramsList
+               --return (a:b:c ++ d:e)) <|> (return [])
+
+identifiersList = (do
+                    a <- idToken
+                    b <- commaToken
+                    c <- identifiersList
+                    return (a:b:c)) <|> (return [])
 
 stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
-stmts = do
-          first <- assign <|> varDecl
-          next <- remaining_stmts
-          return (first ++ next)
+stmts = (do a <- assign <|> varDecl
+            b <- stmts
+            return (a ++ b)) <|> (return [])
 
 assign :: ParsecT [Token] [(Token,Token)] IO([Token])
 assign = do
           a <- idToken
           b <- assignToken
-          c <- intToken
+          c <- intToken <|> floatToken <|> booleanToken <|> charToken 
+                <|> stringToken
           d <- semiColonToken
           updateState(symtable_update (a, c))
           s <- getState
           liftIO (print s)
           return (a:b:c:[d])
 
-remaining_stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
-remaining_stmts = (do a <- assign <|> varDecl
-                      b <- remaining_stmts
-                      return (a ++ b)) <|> (return [])
-
 -- funções para a tabela de símbolos
 
 get_default_value :: Token -> Token
-get_default_value (Type "int") = Int 0          
+get_default_value (Type "int") = Int 0
+get_default_value (Type "float") = Float 0.0
+get_default_value (Type "boolean") = Boolean "false"
+get_default_value (Type "char") = Char 'a'
+get_default_value (Type "string") = String ""
 
 symtable_insert :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
 symtable_insert symbol []  = [symbol]
