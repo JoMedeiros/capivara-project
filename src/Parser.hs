@@ -39,7 +39,7 @@ constDecl = do
             b <- idToken
             i <- assignToken
             c <- expression
-            e <- semiColonToken
+            e <- semicolonToken
             updateState(symtable_insert (b, get_default_value a))
             s <- getState
             liftIO (print s)
@@ -49,7 +49,7 @@ varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
             a <- typeToken
             b <- idToken
-            e <- semiColonToken
+            e <- semicolonToken
             updateState(symtable_insert (b, get_default_value a))
             s <- getState
             liftIO (print s)
@@ -60,10 +60,10 @@ function = do
             f <- functionToken
             a <- typeToken
             b <- idToken
-            c <- beginBracketToken
+            c <- beginbracketToken
 --            p <- paramsList
-            d <- endBracketToken
-            e <- semiColonToken
+            d <- endbracketToken
+            e <- semicolonToken
             return (f:a:b:[c] ++ d:[e])
 
 --paramsList :: ParsecT [Token] [(Token,Token)] IO([Token])
@@ -79,7 +79,7 @@ function = do
 --               return (a:b:c)) <|> (return [])
                --b <- colonToken
                --c <- identifiersList
-               --d <- semiColonToken
+               --d <- semicolonToken
                --e <- paramsList
                --return (a:b:c ++ d:e)) <|> (return [])
 
@@ -100,7 +100,7 @@ assign = do
           b <- assignToken
           c <- intToken <|> floatToken <|> booleanToken <|> charToken 
                 <|> stringToken
-          d <- semiColonToken
+          d <- semicolonToken
           updateState(symtable_update (a, c))
           s <- getState
           liftIO (print s)
@@ -109,11 +109,11 @@ assign = do
 -- funções para a tabela de símbolos
 
 get_default_value :: Token -> Token
-get_default_value (Type "int") = Int 0
-get_default_value (Type "float") = Float 0.0
-get_default_value (Type "boolean") = Boolean "false"
-get_default_value (Type "char") = Char 'a'
-get_default_value (Type "string") = String ""
+get_default_value (Type "int" (l, c)) = Int 0 (l, c)
+get_default_value (Type "float" (l, c)) = Float 0.0 (l, c)
+get_default_value (Type "boolean" (l, c)) = Boolean "false" (l, c)
+get_default_value (Type "char" (l, c)) = Char 'a' (l, c)
+get_default_value (Type "string" (l, c)) = String "" (l, c)
 
 symtable_insert :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
 symtable_insert symbol []  = [symbol]

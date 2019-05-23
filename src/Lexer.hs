@@ -14,165 +14,234 @@ import System.IO.Unsafe
 -- Tokens
 ----------------------------------------
 
-tokenize :: Token -> ParsecT [Token] st IO (Token)
-tokenize token = tokenPrim show update_pos get_token where
-  get_token token = Just token
-  get_token _     = Nothing
+programToken :: ParsecT [Token] st IO(Token)
+programToken = tokenPrim show update_pos get_token where
+  get_token (Program p) = Just (Program p)
+  get_token _ = Nothing
 
-programToken :: ParsecT [Token] st IO (Token)
-programToken = tokenize Program
+beginToken :: ParsecT [Token] st IO(Token)
+beginToken = tokenPrim show update_pos get_token where
+  get_token (Begin p) = Just (Begin p)
+  get_token _ = Nothing
 
-beginToken :: ParsecT [Token] st IO (Token)
-beginToken = tokenize Begin
+endToken :: ParsecT [Token] st IO(Token)
+endToken = tokenPrim show update_pos get_token where
+  get_token (End p) = Just (End p)
+  get_token _ = Nothing
 
-endToken :: ParsecT [Token] st IO (Token)
-endToken = tokenize End
+colonToken :: ParsecT [Token] st IO(Token)
+colonToken = tokenPrim show update_pos get_token where
+  get_token (Colon p) = Just (Colon p)
+  get_token _ = Nothing
 
-colonToken :: ParsecT [Token] st IO (Token)
-colonToken = tokenize Colon
+semicolonToken :: ParsecT [Token] st IO(Token)
+semicolonToken = tokenPrim show update_pos get_token where
+  get_token (SemiColon p) = Just (SemiColon p)
+  get_token _ = Nothing
 
-commaToken :: ParsecT [Token] st IO (Token)
-commaToken = tokenize Comma
+commaToken :: ParsecT [Token] st IO(Token)
+commaToken = tokenPrim show update_pos get_token where
+  get_token (Comma p) = Just (Comma p)
+  get_token _ = Nothing
 
-semiColonToken :: ParsecT [Token] st IO (Token)
-semiColonToken = tokenize SemiColon
+assignToken :: ParsecT [Token] st IO(Token)
+assignToken = tokenPrim show update_pos get_token where
+  get_token (Assign p) = Just (Assign p)
+  get_token _ = Nothing
 
-assignToken :: ParsecT [Token] st IO (Token)
-assignToken = tokenize Assign
-
-constToken :: ParsecT [Token] st IO (Token)
+constToken :: ParsecT [Token] st IO(Token)
 constToken = tokenPrim show update_pos get_token where
-  get_token Const   = Just Const
-  get_token _       = Nothing
+  get_token (Const p) = Just (Const p)
+  get_token _ = Nothing
 
-functionToken :: ParsecT [Token] st IO (Token)
+functionToken :: ParsecT [Token] st IO(Token)
 functionToken = tokenPrim show update_pos get_token where
-  get_token Function   = Just Function
-  get_token _       = Nothing
+  get_token (Function p) = Just (Function p)
+  get_token _ = Nothing
 
-ifToken :: ParsecT [Token] st IO (Token)
-ifToken = tokenize If
+ifToken :: ParsecT [Token] st IO(Token)
+ifToken = tokenPrim show update_pos get_token where
+  get_token (If p) = Just (If p)
+  get_token _ = Nothing
 
-thenToken :: ParsecT [Token] st IO (Token)
-thenToken = tokenize Then
+thenToken :: ParsecT [Token] st IO(Token)
+thenToken = tokenPrim show update_pos get_token where
+  get_token (Then p) = Just (Then p)
+  get_token _ = Nothing
 
-writeToken :: ParsecT [Token] st IO (Token)
-writeToken = tokenize Write
+writeToken :: ParsecT [Token] st IO(Token)
+writeToken = tokenPrim show update_pos get_token where
+  get_token (Write p) = Just (Write p)
+  get_token _ = Nothing
 
-beginScopeToken :: ParsecT [Token] st IO (Token)
-beginScopeToken = tokenize BeginScope
+beginscopeToken :: ParsecT [Token] st IO(Token)
+beginscopeToken = tokenPrim show update_pos get_token where
+  get_token (BeginScope p) = Just (BeginScope p)
+  get_token _ = Nothing
 
-endScopeToken :: ParsecT [Token] st IO (Token)
-endScopeToken = tokenize EndScope
+endscopeToken :: ParsecT [Token] st IO(Token)
+endscopeToken = tokenPrim show update_pos get_token where
+  get_token (EndScope p) = Just (EndScope p)
+  get_token _ = Nothing
 
-beginBracketToken :: ParsecT [Token] st IO (Token)
-beginBracketToken = tokenize BeginBracket
+beginbracketToken :: ParsecT [Token] st IO(Token)
+beginbracketToken = tokenPrim show update_pos get_token where
+  get_token (BeginBracket p) = Just (BeginBracket p)
+  get_token _ = Nothing
 
-endBracketToken :: ParsecT [Token] st IO (Token)
-endBracketToken = tokenize EndBracket
+endbracketToken :: ParsecT [Token] st IO(Token)
+endbracketToken = tokenPrim show update_pos get_token where
+  get_token (EndBracket p) = Just (EndBracket p)
+  get_token _ = Nothing
 
-beginListToken :: ParsecT [Token] st IO (Token)
-beginListToken = tokenize BeginList
+beginlistToken :: ParsecT [Token] st IO(Token)
+beginlistToken = tokenPrim show update_pos get_token where
+  get_token (BeginList p) = Just (BeginList p)
+  get_token _ = Nothing
 
-endlistToken :: ParsecT [Token] st IO (Token)
-endlistToken = tokenize EndList
+endlistToken :: ParsecT [Token] st IO(Token)
+endlistToken = tokenPrim show update_pos get_token where
+  get_token (EndList p) = Just (EndList p)
+  get_token _ = Nothing
 
-plusplusToken :: ParsecT [Token] st IO (Token)
-plusplusToken = tokenize PlusPlus
+plusplusToken :: ParsecT [Token] st IO(Token)
+plusplusToken = tokenPrim show update_pos get_token where
+  get_token (PlusPlus p) = Just (PlusPlus p)
+  get_token _ = Nothing
 
-plusToken :: ParsecT [Token] st IO (Token)
-plusToken = tokenize Plus
+plusToken :: ParsecT [Token] st IO(Token)
+plusToken = tokenPrim show update_pos get_token where
+  get_token (Plus p) = Just (Plus p)
+  get_token _ = Nothing
 
-minusMinusToken :: ParsecT [Token] st IO (Token)
-minusMinusToken = tokenize MinusMinus
+minusminusToken :: ParsecT [Token] st IO(Token)
+minusminusToken = tokenPrim show update_pos get_token where
+  get_token (MinusMinus p) = Just (MinusMinus p)
+  get_token _ = Nothing
 
-minusToken :: ParsecT [Token] st IO (Token)
-minusToken = tokenize Minus
+minusToken :: ParsecT [Token] st IO(Token)
+minusToken = tokenPrim show update_pos get_token where
+  get_token (Minus p) = Just (Minus p)
+  get_token _ = Nothing
 
-multToken :: ParsecT [Token] st IO (Token)
-multToken = tokenize Mult
+multToken :: ParsecT [Token] st IO(Token)
+multToken = tokenPrim show update_pos get_token where
+  get_token (Mult p) = Just (Mult p)
+  get_token _ = Nothing
 
-divToken :: ParsecT [Token] st IO (Token)
-divToken = tokenize Div
+divToken :: ParsecT [Token] st IO(Token)
+divToken = tokenPrim show update_pos get_token where
+  get_token (Div p) = Just (Div p)
+  get_token _ = Nothing
 
-modToken :: ParsecT [Token] st IO (Token)
-modToken = tokenize Mod
+modToken :: ParsecT [Token] st IO(Token)
+modToken = tokenPrim show update_pos get_token where
+  get_token (Mod p) = Just (Mod p)
+  get_token _ = Nothing
 
-powerToken :: ParsecT [Token] st IO (Token)
-powerToken = tokenize Power
+powerToken :: ParsecT [Token] st IO(Token)
+powerToken = tokenPrim show update_pos get_token where
+  get_token (Power p) = Just (Power p)
+  get_token _ = Nothing
 
-elifToken :: ParsecT [Token] st IO (Token)
-elifToken = tokenize Elif
+elifToken :: ParsecT [Token] st IO(Token)
+elifToken = tokenPrim show update_pos get_token where
+  get_token (Elif p) = Just (Elif p)
+  get_token _ = Nothing
 
-elseToken :: ParsecT [Token] st IO (Token)
-elseToken = tokenize Else
+elseToken :: ParsecT [Token] st IO(Token)
+elseToken = tokenPrim show update_pos get_token where
+  get_token (Else p) = Just (Else p)
+  get_token _ = Nothing
 
-switchToken :: ParsecT [Token] st IO (Token)
-switchToken = tokenize Switch
+switchToken :: ParsecT [Token] st IO(Token)
+switchToken = tokenPrim show update_pos get_token where
+  get_token (Switch p) = Just (Switch p)
+  get_token _ = Nothing
 
-caseToken :: ParsecT [Token] st IO (Token)
-caseToken = tokenize Case
+caseToken :: ParsecT [Token] st IO(Token)
+caseToken = tokenPrim show update_pos get_token where
+  get_token (Case p) = Just (Case p)
+  get_token _ = Nothing
 
-oporToken :: ParsecT [Token] st IO (Token)
-oporToken = tokenize OpOr
+oporToken :: ParsecT [Token] st IO(Token)
+oporToken = tokenPrim show update_pos get_token where
+  get_token (OpOr p) = Just (OpOr p)
+  get_token _ = Nothing
 
-opxorToken :: ParsecT [Token] st IO (Token)
-opxorToken = tokenize OpXor
+opxorToken :: ParsecT [Token] st IO(Token)
+opxorToken = tokenPrim show update_pos get_token where
+  get_token (OpXor p) = Just (OpXor p)
+  get_token _ = Nothing
 
-opandToken :: ParsecT [Token] st IO (Token)
-opandToken = tokenize OpAnd
+opandToken :: ParsecT [Token] st IO(Token)
+opandToken = tokenPrim show update_pos get_token where
+  get_token (OpAnd p) = Just (OpAnd p)
+  get_token _ = Nothing
 
-equalToken :: ParsecT [Token] st IO (Token)
-equalToken = tokenize Equal
+equalToken :: ParsecT [Token] st IO(Token)
+equalToken = tokenPrim show update_pos get_token where
+  get_token (Equal p) = Just (Equal p)
+  get_token _ = Nothing
 
-differentToken :: ParsecT [Token] st IO (Token)
-differentToken = tokenize Different
+differentToken :: ParsecT [Token] st IO(Token)
+differentToken = tokenPrim show update_pos get_token where
+  get_token (Different p) = Just (Different p)
+  get_token _ = Nothing
 
-greaterToken :: ParsecT [Token] st IO (Token)
-greaterToken = tokenize Greater
+greaterToken :: ParsecT [Token] st IO(Token)
+greaterToken = tokenPrim show update_pos get_token where
+  get_token (Greater p) = Just (Greater p)
+  get_token _ = Nothing
 
-lessToken :: ParsecT [Token] st IO (Token)
-lessToken = tokenize Less
+lessToken :: ParsecT [Token] st IO(Token)
+lessToken = tokenPrim show update_pos get_token where
+  get_token (Less p) = Just (Less p)
+  get_token _ = Nothing
 
-greaterorequalToken :: ParsecT [Token] st IO (Token)
-greaterorequalToken = tokenize GreaterOrEqual
+greaterorequalToken :: ParsecT [Token] st IO(Token)
+greaterorequalToken = tokenPrim show update_pos get_token where
+  get_token (GreaterOrEqual p) = Just (GreaterOrEqual p)
+  get_token _ = Nothing
 
-lessOrEqualToken :: ParsecT [Token] st IO (Token)
-lessOrEqualToken = tokenize LessOrEqual
+lessorequalToken :: ParsecT [Token] st IO(Token)
+lessorequalToken = tokenPrim show update_pos get_token where
+  get_token (LessOrEqual p) = Just (LessOrEqual p)
+  get_token _ = Nothing
 
 typeToken :: ParsecT [Token] st IO (Token)
 typeToken = tokenPrim show update_pos get_token where
-  get_token (Type x) = Just (Type x)
+  get_token (Type x p) = Just (Type x p)
   get_token _        = Nothing 
 
 idToken :: ParsecT [Token] st IO (Token)
 idToken = tokenPrim show update_pos get_token where
-  get_token (Id x) = Just (Id x)
+  get_token (Id x p) = Just (Id x p)
   get_token _      = Nothing
 
 intToken :: ParsecT [Token] st IO (Token)
 intToken = tokenPrim show update_pos get_token where
-  get_token (Int x) = Just (Int x)
+  get_token (Int x p) = Just (Int x p)
   get_token _       = Nothing
 
 floatToken :: ParsecT [Token] st IO (Token)
 floatToken = tokenPrim show update_pos get_token where
-  get_token (Float x) = Just (Float x)
+  get_token (Float x p) = Just (Float x p)
   get_token _       = Nothing
 
 booleanToken :: ParsecT [Token] st IO (Token)
 booleanToken = tokenPrim show update_pos get_token where
-  get_token (Boolean x) = Just (Boolean x)
+  get_token (Boolean x p) = Just (Boolean x p)
   get_token _       = Nothing
 
 charToken :: ParsecT [Token] st IO (Token)
 charToken = tokenPrim show update_pos get_token where
-  get_token (Char x) = Just (Char x)
+  get_token (Char x p) = Just (Char x p)
   get_token _       = Nothing
 
 stringToken :: ParsecT [Token] st IO (Token)
 stringToken = tokenPrim show update_pos get_token where
-  get_token (String x) = Just (String x)
+  get_token (String x p) = Just (String x p)
   get_token _       = Nothing
 
 ----------------------------------------

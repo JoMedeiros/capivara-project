@@ -79,23 +79,23 @@ type Byte = Word8
 -- The input type
 
 
+type AlexInput = (AlexPosn,     -- current position,
+                  Char,         -- previous char
+                  [Byte],       -- pending bytes on current char
+                  String)       -- current input string
 
+ignorePendingBytes :: AlexInput -> AlexInput
+ignorePendingBytes (p,c,_ps,s) = (p,c,[],s)
 
+alexInputPrevChar :: AlexInput -> Char
+alexInputPrevChar (_p,c,_bs,_s) = c
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+alexGetByte :: AlexInput -> Maybe (Byte,AlexInput)
+alexGetByte (p,c,(b:bs),s) = Just (b,(p,c,bs,s))
+alexGetByte (_,_,[],[]) = Nothing
+alexGetByte (p,_,[],(c:s))  = let p' = alexMove p c
+                                  (b:bs) = utf8Encode c
+                              in p' `seq`  Just (b, (p', c, bs, s))
 
 
 
@@ -168,16 +168,16 @@ type Byte = Word8
 -- assuming the usual eight character tab stops.
 
 
+data AlexPosn = AlexPn !Int !Int !Int
+        deriving (Eq,Show)
 
+alexStartPos :: AlexPosn
+alexStartPos = AlexPn 0 1 1
 
-
-
-
-
-
-
-
-
+alexMove :: AlexPosn -> Char -> AlexPosn
+alexMove (AlexPn a l c) '\t' = AlexPn (a+1)  l     (((c+alex_tab_size-1) `div` alex_tab_size)*alex_tab_size+1)
+alexMove (AlexPn a l _) '\n' = AlexPn (a+1) (l+1)   1
+alexMove (AlexPn a l c) _    = AlexPn (a+1)  l     (c+1)
 
 
 -- -----------------------------------------------------------------------------
@@ -403,26 +403,26 @@ type Byte = Word8
 -- Basic wrapper
 
 
-type AlexInput = (Char,[Byte],String)
 
-alexInputPrevChar :: AlexInput -> Char
-alexInputPrevChar (c,_,_) = c
 
--- alexScanTokens :: String -> [token]
-alexScanTokens str = go ('\n',[],str)
-  where go inp__@(_,_bs,s) =
-          case alexScan inp__ 0 of
-                AlexEOF -> []
-                AlexError _ -> error "lexical error"
-                AlexSkip  inp__' _ln     -> go inp__'
-                AlexToken inp__' len act -> act (take len s) : go inp__'
 
-alexGetByte :: AlexInput -> Maybe (Byte,AlexInput)
-alexGetByte (c,(b:bs),s) = Just (b,(c,bs,s))
-alexGetByte (_,[],[])    = Nothing
-alexGetByte (_,[],(c:s)) = case utf8Encode c of
-                             (b:bs) -> Just (b, (c, bs, s))
-                             [] -> Nothing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -466,14 +466,14 @@ alexGetByte (_,[],(c:s)) = case utf8Encode c of
 -- Adds text positions to the basic model.
 
 
-
-
-
-
-
-
-
-
+--alexScanTokens :: String -> [token]
+alexScanTokens str0 = go (alexStartPos,'\n',[],str0)
+  where go inp__@(pos,_,_,str) =
+          case alexScan inp__ 0 of
+                AlexEOF -> []
+                AlexError ((AlexPn _ line column),_,_,_) -> error $ "lexical error at line " ++ (show line) ++ ", column " ++ (show column)
+                AlexSkip  inp__' _ln     -> go inp__'
+                AlexToken inp__' len act -> act pos (take len str) : go inp__'
 
 
 
@@ -24126,113 +24126,115 @@ alex_actions = array (0 :: Int, 130)
 -- Each action has type :: String -> Token
 -- The token type:
 data Token =
-  Program         |
-  Begin           |
-  End             |
-  Colon           |
-  SemiColon       |
-  Comma           |
-  Assign          | 
-  Const           |
-  Function        |
-  If              |
-  Then            |
-  Write           |
-  BeginScope      |
-  EndScope        |
-  BeginBracket    |
-  EndBracket      |
-  BeginList       |
-  EndList         |
-  PlusPlus        |
-  Plus            |
-  MinusMinus      |
-  Minus           |
-  Mult            |
-  Div             |
-  Mod             |
-  Power           |
-  Elif            |
-  Else            |
-  Switch          |
-  Case            |
-  OpOr            |
-  OpXor           |
-  OpAnd           |
-  Equal           |
-  Different       |
-  Greater         |
-  Less            |
-  GreaterOrEqual  |
-  LessOrEqual     |
-  Type String     |
-  Id   String     |
-  Int  Int        |
-  Float Float     |
-  Char Char       |
-  Boolean String  |
-  String   String
+  Program         (Int, Int) |
+  Begin           (Int, Int) |
+  End             (Int, Int) |
+  Colon           (Int, Int) |
+  SemiColon       (Int, Int) |
+  Comma           (Int, Int) |
+  Assign          (Int, Int) | 
+  Const           (Int, Int) |
+  Function        (Int, Int) |
+  If              (Int, Int) |
+  Then            (Int, Int) |
+  Write           (Int, Int) |
+  BeginScope      (Int, Int) |
+  EndScope        (Int, Int) |
+  BeginBracket    (Int, Int) |
+  EndBracket      (Int, Int) |
+  BeginList       (Int, Int) |
+  EndList         (Int, Int) |
+  PlusPlus        (Int, Int) |
+  Plus            (Int, Int) |
+  MinusMinus      (Int, Int) |
+  Minus           (Int, Int) |
+  Mult            (Int, Int) |
+  Div             (Int, Int) |
+  Mod             (Int, Int) |
+  Power           (Int, Int) |
+  Elif            (Int, Int) |
+  Else            (Int, Int) |
+  Switch          (Int, Int) |
+  Case            (Int, Int) |
+  OpOr            (Int, Int) |
+  OpXor           (Int, Int) |
+  OpAnd           (Int, Int) |
+  Equal           (Int, Int) |
+  Different       (Int, Int) |
+  Greater         (Int, Int) |
+  Less            (Int, Int) |
+  GreaterOrEqual  (Int, Int) |
+  LessOrEqual     (Int, Int) |
+  Type String     (Int, Int) |
+  Id   String     (Int, Int) |
+  Int  Int        (Int, Int) |
+  Float Float     (Int, Int) |
+  Char Char       (Int, Int) |
+  Boolean String  (Int, Int) |
+  String   String (Int, Int)
   deriving (Eq,Show)
+
+getLC (AlexPn _ l c) = (l, c)  
 
 getTokens fn = unsafePerformIO (getTokensAux fn)
 getTokensAux fn = do {fh <- openFile fn ReadMode;
                       s <- hGetContents fh;
                       return (alexScanTokens s)}
 
-alex_action_2 =  \s -> Begin
-alex_action_3 =  \s -> Program 
-alex_action_4 =  \s -> End
-alex_action_5 =  \s -> Const
-alex_action_6 =  \s -> Function
-alex_action_7 =  \s -> Then
-alex_action_8 =  \s -> Write
-alex_action_9 =  \s -> BeginScope
-alex_action_10 =  \s -> EndScope
-alex_action_11 =  \s -> BeginBracket
-alex_action_12 =  \s -> EndBracket
-alex_action_13 =  \s -> BeginList
-alex_action_14 =  \s -> EndList
-alex_action_15 =  \s -> Colon
-alex_action_16 =  \s -> SemiColon
-alex_action_17 =  \s -> Comma
-alex_action_18 =  \s -> Type s
-alex_action_19 =  \s -> Type s
-alex_action_20 =  \s -> Type s
-alex_action_21 =  \s -> Type s
-alex_action_22 =  \s -> Type s
-alex_action_23 =  \s -> Type s
-alex_action_24 =  \s -> Type s
-alex_action_25 =  \s -> Type s
-alex_action_26 =  \s -> Assign
-alex_action_27 =  \s -> Equal
-alex_action_28 =  \s -> Different
-alex_action_29 =  \s -> Greater
-alex_action_30 =  \s -> Less
-alex_action_31 =  \s -> GreaterOrEqual
-alex_action_32 =  \s -> LessOrEqual
-alex_action_33 =  \s -> PlusPlus
-alex_action_34 =  \s -> Plus
-alex_action_35 =  \s -> MinusMinus
-alex_action_36 =  \s -> Minus
-alex_action_37 =  \s -> Power
-alex_action_38 =  \s -> Mult
-alex_action_39 =  \s -> Div
-alex_action_40 =  \s -> Mod
-alex_action_41 =  \s -> If
-alex_action_42 =  \s -> Elif
-alex_action_43 =  \s -> Else
-alex_action_44 =  \s -> Switch
-alex_action_45 =  \s -> Case
-alex_action_46 =  \s -> OpOr
-alex_action_47 =  \s -> OpXor
-alex_action_48 =  \s -> OpAnd
-alex_action_49 =  \s -> Int (read s) 
-alex_action_50 =  \s -> Float (read s) 
-alex_action_51 =  \s -> Char (read s) 
-alex_action_52 =  \s -> Boolean s
-alex_action_53 =  \s -> Boolean s
-alex_action_54 =  \s -> Id s 
-alex_action_55 =  \s -> String s
+alex_action_2 =  \p s -> Begin (getLC p) 
+alex_action_3 =  \p s -> Program  (getLC p) 
+alex_action_4 =  \p s -> End (getLC p) 
+alex_action_5 =  \p s -> Const (getLC p) 
+alex_action_6 =  \p s -> Function (getLC p) 
+alex_action_7 =  \p s -> Then (getLC p) 
+alex_action_8 =  \p s -> Write (getLC p) 
+alex_action_9 =  \p s -> BeginScope (getLC p) 
+alex_action_10 =  \p s -> EndScope (getLC p) 
+alex_action_11 =  \p s -> BeginBracket (getLC p) 
+alex_action_12 =  \p s -> EndBracket (getLC p) 
+alex_action_13 =  \p s -> BeginList (getLC p) 
+alex_action_14 =  \p s -> EndList (getLC p) 
+alex_action_15 =  \p s -> Colon (getLC p) 
+alex_action_16 =  \p s -> SemiColon (getLC p) 
+alex_action_17 =  \p s -> Comma  (getLC p) 
+alex_action_18 =  \p s -> Type s (getLC p) 
+alex_action_19 =  \p s -> Type s (getLC p) 
+alex_action_20 =  \p s -> Type s (getLC p) 
+alex_action_21 =  \p s -> Type s (getLC p) 
+alex_action_22 =  \p s -> Type s (getLC p) 
+alex_action_23 =  \p s -> Type s (getLC p) 
+alex_action_24 =  \p s -> Type s (getLC p) 
+alex_action_25 =  \p s -> Type s (getLC p) 
+alex_action_26 =  \p s -> Assign (getLC p) 
+alex_action_27 =  \p s -> Equal (getLC p) 
+alex_action_28 =  \p s -> Different (getLC p) 
+alex_action_29 =  \p s -> Greater (getLC p) 
+alex_action_30 =  \p s -> Less (getLC p) 
+alex_action_31 =  \p s -> GreaterOrEqual (getLC p) 
+alex_action_32 =  \p s -> LessOrEqual (getLC p) 
+alex_action_33 =  \p s -> PlusPlus (getLC p) 
+alex_action_34 =  \p s -> Plus (getLC p) 
+alex_action_35 =  \p s -> MinusMinus (getLC p) 
+alex_action_36 =  \p s -> Minus (getLC p) 
+alex_action_37 =  \p s -> Power (getLC p) 
+alex_action_38 =  \p s -> Mult (getLC p) 
+alex_action_39 =  \p s -> Div (getLC p) 
+alex_action_40 =  \p s -> Mod (getLC p) 
+alex_action_41 =  \p s -> If (getLC p) 
+alex_action_42 =  \p s -> Elif (getLC p) 
+alex_action_43 =  \p s -> Else (getLC p) 
+alex_action_44 =  \p s -> Switch (getLC p) 
+alex_action_45 =  \p s -> Case (getLC p) 
+alex_action_46 =  \p s -> OpOr (getLC p) 
+alex_action_47 =  \p s -> OpXor (getLC p) 
+alex_action_48 =  \p s -> OpAnd (getLC p) 
+alex_action_49 =  \p s -> Int (read s)  (getLC p) 
+alex_action_50 =  \p s -> Float (read s)  (getLC p) 
+alex_action_51 =  \p s -> Char (read s)  (getLC p) 
+alex_action_52 =  \p s -> Boolean s (getLC p) 
+alex_action_53 =  \p s -> Boolean s (getLC p) 
+alex_action_54 =  \p s -> Id s  (getLC p) 
+alex_action_55 =  \p s -> String s (getLC p) 
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 -- -----------------------------------------------------------------------------
 -- ALEX TEMPLATE

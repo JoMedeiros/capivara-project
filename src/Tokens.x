@@ -5,74 +5,74 @@ import System.IO
 import System.IO.Unsafe
 }
 
-%wrapper "basic"
+%wrapper "posn"
 
 $digit = 0-9      -- digits
 $alpha = [a-zA-Z] -- alphabetic characters
 
 tokens :-
 
-  $white+                              ;
-  "--".*                               ; -- comment
-  begin                                { \p s -> Begin}
-  program                              { \p s -> Program }
-  end                                  { \p s -> End}
-  const                                { \p s -> Const}
-  function                             { \p s -> Function}
-  then                                 { \p s -> Then}
-  write                                { \p s -> Write}
-  "{"                                  { \p s -> BeginScope}
-  "}"                                  { \p s -> EndScope}
-  "("                                  { \p s -> BeginBracket}
-  ")"                                  { \p s -> EndBracket}
-  "["                                  { \p s -> BeginList}
-  "]"                                  { \p s -> EndList}
-  ":"                                  { \p s -> Colon}
-  ";"                                  { \p s -> SemiColon}
-  ","                                  { \p s -> Comma} 
-  int                                  { \p s -> Type s}
-  float                                { \p s -> Type s}
-  char                                 { \p s -> Type s}
-  boolean                              { \p s -> Type s}
-  string                               { \p s -> Type s}
-  List                                 { \p s -> Type s}
-  Mat                                  { \p s -> Type s}
-  Table                                { \p s -> Type s}
-  "="                                  { \p s -> Assign}
-  "=="                                 { \p s -> Equal}
-  "!="                                 { \p s -> Different}
-  ">"                                  { \p s -> Greater}
-  "<"                                  { \p s -> Less}
-  ">="                                 { \p s -> GreaterOrEqual}
-  "<="                                 { \p s -> LessOrEqual}
-  "++"                                 { \p s -> PlusPlus}
-  "+"                                  { \p s -> Plus}
-  "--"                                 { \p s -> MinusMinus}
-  "-"                                  { \p s -> Minus}
-  "**"                                 { \p s -> Power}
-  "*"                                  { \p s -> Mult}
-  "/"                                  { \p s -> Div}
-  "mod"                                { \p s -> Mod}
-  if                                   { \p s -> If}
-  elif                                 { \p s -> Elif}
-  else                                 { \p s -> Else}
-  switch                               { \p s -> Switch}
-  case                                 { \p s -> Case}
-  or                                   { \p s -> OpOr}
-  xor                                  { \p s -> OpXor}
-  and                                  { \p s -> OpAnd}
-  $digit+                              { \p s -> Int (read s) }
-  $digit+\.$digit+                     { \p s -> Float (read s) }
-  \'.\'                                { \p s -> Char (read s) }
-  "true"                               { \p s -> Boolean s}
-  "false"                              { \p s -> Boolean s}
-  $alpha [$alpha $digit \_ \']*        { \p s -> Id s }
-  \" $alpha [. [^\"] \']* \"           { \p s -> String s}
+  $white+                         ;
+  "--".*                          ; -- comment
+  begin                           { \p s -> Begin (getLC p) }
+  program                         { \p s -> Program  (getLC p) }
+  end                             { \p s -> End (getLC p) }
+  const                           { \p s -> Const (getLC p) }
+  function                        { \p s -> Function (getLC p) }
+  then                            { \p s -> Then (getLC p) }
+  write                           { \p s -> Write (getLC p) }
+  "{"                             { \p s -> BeginScope (getLC p) }
+  "}"                             { \p s -> EndScope (getLC p) }
+  "("                             { \p s -> BeginBracket (getLC p) }
+  ")"                             { \p s -> EndBracket (getLC p) }
+  "["                             { \p s -> BeginList (getLC p) }
+  "]"                             { \p s -> EndList (getLC p) }
+  ":"                             { \p s -> Colon (getLC p) }
+  ";"                             { \p s -> SemiColon (getLC p) }
+  ","                             { \p s -> Comma  (getLC p) }
+  int                             { \p s -> Type s (getLC p) }
+  float                           { \p s -> Type s (getLC p) }
+  char                            { \p s -> Type s (getLC p) }
+  boolean                         { \p s -> Type s (getLC p) }
+  string                          { \p s -> Type s (getLC p) }
+  List                            { \p s -> Type s (getLC p) }
+  Mat                             { \p s -> Type s (getLC p) }
+  Table                           { \p s -> Type s (getLC p) }
+  "="                             { \p s -> Assign (getLC p) }
+  "=="                            { \p s -> Equal (getLC p) }
+  "!="                            { \p s -> Different (getLC p) }
+  ">"                             { \p s -> Greater (getLC p) }
+  "<"                             { \p s -> Less (getLC p) }
+  ">="                            { \p s -> GreaterOrEqual (getLC p) }
+  "<="                            { \p s -> LessOrEqual (getLC p) }
+  "++"                            { \p s -> PlusPlus (getLC p) }
+  "+"                             { \p s -> Plus (getLC p) }
+  "--"                            { \p s -> MinusMinus (getLC p) }
+  "-"                             { \p s -> Minus (getLC p) }
+  "**"                            { \p s -> Power (getLC p) }
+  "*"                             { \p s -> Mult (getLC p) }
+  "/"                             { \p s -> Div (getLC p) }
+  "mod"                           { \p s -> Mod (getLC p) }
+  if                              { \p s -> If (getLC p) }
+  elif                            { \p s -> Elif (getLC p) }
+  else                            { \p s -> Else (getLC p) }
+  switch                          { \p s -> Switch (getLC p) }
+  case                            { \p s -> Case (getLC p) }
+  or                              { \p s -> OpOr (getLC p) }
+  xor                             { \p s -> OpXor (getLC p) }
+  and                             { \p s -> OpAnd (getLC p) }
+  $digit+                         { \p s -> Int (read s)  (getLC p) }
+  $digit+\.$digit+                { \p s -> Float (read s)  (getLC p) }
+  \'.\'                           { \p s -> Char (read s)  (getLC p) }
+  "true"                          { \p s -> Boolean s (getLC p) }
+  "false"                         { \p s -> Boolean s (getLC p) }
+  $alpha [$alpha $digit \_ \']*   { \p s -> Id s  (getLC p) }
+  \" $alpha [. [^\"] \']* \"      { \p s -> String s (getLC p) }
 {
 -- Each action has type :: String -> Token
 -- The token type:
 data Token =
-  Program         (Int, Int) (Int, Int) |
+  Program         (Int, Int) |
   Begin           (Int, Int) |
   End             (Int, Int) |
   Colon           (Int, Int) |

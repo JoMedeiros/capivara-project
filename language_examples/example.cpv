@@ -3,7 +3,7 @@
 int global_variable;
 string name;
 const int global_constant = 1;
-function int helloWorld();
+function int helloWorld( asdasd , );
 char type;
 
 begin program
