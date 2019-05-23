@@ -16,7 +16,7 @@ import System.IO.Unsafe
 
 tokenize :: Token -> ParsecT [Token] st IO (Token)
 tokenize token = tokenPrim show update_pos get_token where
-  get_token token = Just token
+  get_token (token p) = Just (token p)
   get_token _     = Nothing
 
 programToken :: ParsecT [Token] st IO (Token)
@@ -42,12 +42,12 @@ assignToken = tokenize Assign
 
 constToken :: ParsecT [Token] st IO (Token)
 constToken = tokenPrim show update_pos get_token where
-  get_token Const   = Just Const
+  get_token (Const p)  = Just (Const p)
   get_token _       = Nothing
 
 functionToken :: ParsecT [Token] st IO (Token)
 functionToken = tokenPrim show update_pos get_token where
-  get_token Function   = Just Function
+  get_token (Function p)   = Just (Function p)
   get_token _       = Nothing
 
 ifToken :: ParsecT [Token] st IO (Token)
@@ -142,37 +142,37 @@ lessOrEqualToken = tokenize LessOrEqual
 
 typeToken :: ParsecT [Token] st IO (Token)
 typeToken = tokenPrim show update_pos get_token where
-  get_token (Type x) = Just (Type x)
+  get_token (Type x p) = Just (Type x p)
   get_token _        = Nothing 
 
 idToken :: ParsecT [Token] st IO (Token)
 idToken = tokenPrim show update_pos get_token where
-  get_token (Id x) = Just (Id x)
+  get_token (Id x p) = Just (Id x p)
   get_token _      = Nothing
 
 intToken :: ParsecT [Token] st IO (Token)
 intToken = tokenPrim show update_pos get_token where
-  get_token (Int x) = Just (Int x)
+  get_token (Int x p) = Just (Int x p)
   get_token _       = Nothing
 
 floatToken :: ParsecT [Token] st IO (Token)
 floatToken = tokenPrim show update_pos get_token where
-  get_token (Float x) = Just (Float x)
+  get_token (Float x p) = Just (Float x p)
   get_token _       = Nothing
 
 booleanToken :: ParsecT [Token] st IO (Token)
 booleanToken = tokenPrim show update_pos get_token where
-  get_token (Boolean x) = Just (Boolean x)
+  get_token (Boolean x p) = Just (Boolean x p)
   get_token _       = Nothing
 
 charToken :: ParsecT [Token] st IO (Token)
 charToken = tokenPrim show update_pos get_token where
-  get_token (Char x) = Just (Char x)
+  get_token (Char x p) = Just (Char x p)
   get_token _       = Nothing
 
 stringToken :: ParsecT [Token] st IO (Token)
 stringToken = tokenPrim show update_pos get_token where
-  get_token (String x) = Just (String x)
+  get_token (String x p) = Just (String x p)
   get_token _       = Nothing
 
 ----------------------------------------
