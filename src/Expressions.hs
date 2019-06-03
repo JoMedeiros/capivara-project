@@ -17,7 +17,7 @@ expression = atomicExpr
 
 atomicExpr :: ParsecT [Token] [(Token,Token)] IO([Token])
 atomicExpr = do
-          a <- intToken <|> floatToken <|> booleanToken <|> charToken 
-                <|> stringToken
+          a <- intToken <|> floatToken <|> booleanToken <|> 
+            charToken <|> stringToken
           return [a]
 

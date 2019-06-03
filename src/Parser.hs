@@ -24,7 +24,7 @@ program = do
 
 -- Pre declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-preDecls = (do a <- constDecl <|> varDecl <|> function
+preDecls = (do a <- constDecl <|> varDecl <|> function <|> procedure
                b <- preDecls
                return (a ++ b)) <|> (return [])
 
@@ -61,29 +61,39 @@ function = do
             a <- typeToken
             b <- idToken
             c <- beginbracketToken
---            p <- paramsList
+            p <- paramsList
             d <- endbracketToken
-            e <- semicolonToken
-            return (f:a:b:[c] ++ d:[e])
+            e <- block
+            return (f:a:b:[c] ++ d:e)
 
---paramsList :: ParsecT [Token] [(Token,Token)] IO([Token])
---paramsList = (do
---               a <- typeToken
---               b <- idToken
---               return (a:[b])) <|>
---             (do
---               c <- commaToken
---               a <- typeToken
---               b <- idToken
---               c <- paramsList
---               return (a:b:c)) <|> (return [])
-               --b <- colonToken
-               --c <- identifiersList
-               --d <- semicolonToken
-               --e <- paramsList
-               --return (a:b:c ++ d:e)) <|> (return [])
+procedure :: ParsecT [Token] [(Token,Token)] IO([Token])
+procedure = do
+            f <- procedureToken
+            b <- idToken
+            c <- beginbracketToken
+            p <- paramsList
+            d <- endbracketToken
+            e <- block
+            return (f:b:c:p ++ (d:e))
+
+paramsList :: ParsecT [Token] [(Token,Token)] IO([Token])
+paramsList = (do
+               a <- typeToken
+               b <- idToken
+               c <- paramsList
+               return (a:b:c)) <|>
+             (do
+               a <- commaToken
+               b <- typeToken
+               c <- idToken
+               d <- paramsList
+               return (a:b:c:d)) <|> (return [])
 
 identifiersList = (do
+                    a <- idToken
+                    b <- identifiersList
+                    return (a:b)) <|>
+                  (do
                     a <- idToken
                     b <- commaToken
                     c <- identifiersList
@@ -93,6 +103,12 @@ stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
 stmts = (do a <- assign <|> varDecl
             b <- stmts
             return (a ++ b)) <|> (return [])
+
+block :: ParsecT [Token] [(Token,Token)] IO([Token])
+block = (do a <- beginscopeToken
+            b <- stmts
+            c <- endscopeToken
+            return (a:b ++ [c]))
 
 assign :: ParsecT [Token] [(Token,Token)] IO([Token])
 assign = do

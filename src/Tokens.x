@@ -19,6 +19,7 @@ tokens :-
   end                             { \p s -> End (getLC p) }
   const                           { \p s -> Const (getLC p) }
   function                        { \p s -> Function (getLC p) }
+  procedure                       { \p s -> Procedure (getLC p) }
   then                            { \p s -> Then (getLC p) }
   write                           { \p s -> Write (getLC p) }
   "{"                             { \p s -> BeginScope (getLC p) }
@@ -81,6 +82,7 @@ data Token =
   Assign          (Int, Int) | 
   Const           (Int, Int) |
   Function        (Int, Int) |
+  Procedure       (Int, Int) |
   If              (Int, Int) |
   Then            (Int, Int) |
   Write           (Int, Int) |

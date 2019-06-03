@@ -3,7 +3,19 @@
 int global_variable;
 string name;
 const int global_constant = 1;
-function int helloWorld( asdasd , );
+-- Function declaration
+function int helloWorld( int x, float l) {
+  int x;
+  float y;
+  x = 10;
+}
+-- Procedure declaration
+procedure hellow( char c, string s){
+  s = "hellow";
+  c = 'c';
+}
+
+
 char type;
 
 begin program
