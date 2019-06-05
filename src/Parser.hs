@@ -40,10 +40,10 @@ constDecl = do
             i <- assignToken
             c <- expression
             e <- semicolonToken
-            updateState(symtable_insert (b, get_default_value a))
+            updateState(symtable_insert (b, c))
             s <- getState
             liftIO (print s)
-            return (z:a:b:i:c ++ [e])
+            return (z:a:b:i:c:[e])
 
 varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
@@ -114,8 +114,9 @@ assign :: ParsecT [Token] [(Token,Token)] IO([Token])
 assign = do
           a <- idToken
           b <- assignToken
-          c <- intToken <|> floatToken <|> booleanToken <|> charToken 
-                <|> stringToken
+          c <- expression 
+          --intToken <|> floatToken <|> booleanToken <|> charToken 
+            --    <|> stringToken
           d <- semicolonToken
           updateState(symtable_update (a, c))
           s <- getState
@@ -137,9 +138,10 @@ symtable_insert symbol symtable = symtable ++ [symbol]
 
 symtable_update :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
 symtable_update _ [] = fail "variable not found"
-symtable_update (id1, v1) ((id2, v2):t) = 
-                               if id1 == id2 then (id1, v1) : t
-                               else (id2, v2) : symtable_update (id1, v1) t
+symtable_update (Id id1 p1, v1) ((Id id2 p2, v2):t) = 
+           if id1 == id2 then (Id id1 p2, v1) : t
+           else (Id id2 p2, v2) : symtable_update (Id id1 p1, v1) t
+
 
 symtable_remove :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
 symtable_remove _ [] = fail "variable not found"
