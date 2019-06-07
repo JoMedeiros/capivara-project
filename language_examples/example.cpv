@@ -11,14 +11,12 @@ function int helloWorld( int x, float l) {
 }
 -- Procedure declaration
 procedure hellow( char c, string s){
-  s = "hellow";
-  c = 'c';
+  c = 10;
 }
 
 char type;
 
 begin program
-  name = "Josivan";
   int x;
   float y;
   boolean z;

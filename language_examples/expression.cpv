@@ -4,7 +4,8 @@ begin program
   int b;
   int c;
   a = 9;
-  b = 5;
-  c = a + b;
+  b = 2;
+  --c = (a + b) * ( a - b );
+  c = a*b**2 +  a /b;
 end program
 
