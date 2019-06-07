@@ -10,6 +10,7 @@ To compile run the script:
 
 TODOs
 
+- [ ] Change a symbols table to use a generic type Cell
 - [x] Finish the Lexer.hs (create all the tokens defined in the BNF)
 - [x] Finish the Tokens.hs (along with the Lexer)
 - [ ] Continue the Parser

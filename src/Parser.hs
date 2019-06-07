@@ -24,7 +24,7 @@ program = do
 
 -- Pre declarations
 preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
-preDecls = (do a <- constDecl <|> varDecl <|> function
+preDecls = (do a <- constDecl <|> varDecl <|> function <|> procedure
                b <- preDecls
                return (a ++ b)) <|> (return [])
 
@@ -39,17 +39,17 @@ constDecl = do
             b <- idToken
             i <- assignToken
             c <- expression
-            e <- semiColonToken
-            updateState(symtable_insert (b, get_default_value a))
+            e <- semicolonToken
+            updateState(symtable_insert (b, c))
             s <- getState
             liftIO (print s)
-            return (z:a:b:i:c ++ [e])
+            return (z:a:b:i:c:[e])
 
 varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
 varDecl = do
             a <- typeToken
             b <- idToken
-            e <- semiColonToken
+            e <- semicolonToken
             updateState(symtable_insert (b, get_default_value a))
             s <- getState
             liftIO (print s)
@@ -60,30 +60,40 @@ function = do
             f <- functionToken
             a <- typeToken
             b <- idToken
-            c <- beginBracketToken
---            p <- paramsList
-            d <- endBracketToken
-            e <- semiColonToken
-            return (f:a:b:[c] ++ d:[e])
+            c <- beginbracketToken
+            p <- paramsList
+            d <- endbracketToken
+            e <- block
+            return (f:a:b:[c] ++ d:e)
 
---paramsList :: ParsecT [Token] [(Token,Token)] IO([Token])
---paramsList = (do
---               a <- typeToken
---               b <- idToken
---               return (a:[b])) <|>
---             (do
---               c <- commaToken
---               a <- typeToken
---               b <- idToken
---               c <- paramsList
---               return (a:b:c)) <|> (return [])
-               --b <- colonToken
-               --c <- identifiersList
-               --d <- semiColonToken
-               --e <- paramsList
-               --return (a:b:c ++ d:e)) <|> (return [])
+procedure :: ParsecT [Token] [(Token,Token)] IO([Token])
+procedure = do
+            f <- procedureToken
+            b <- idToken
+            c <- beginbracketToken
+            p <- paramsList
+            d <- endbracketToken
+            e <- block
+            return (f:b:c:p ++ (d:e))
+
+paramsList :: ParsecT [Token] [(Token,Token)] IO([Token])
+paramsList = (do
+               a <- typeToken
+               b <- idToken
+               c <- paramsList
+               return (a:b:c)) <|>
+             (do
+               a <- commaToken
+               b <- typeToken
+               c <- idToken
+               d <- paramsList
+               return (a:b:c:d)) <|> (return [])
 
 identifiersList = (do
+                    a <- idToken
+                    b <- identifiersList
+                    return (a:b)) <|>
+                  (do
                     a <- idToken
                     b <- commaToken
                     c <- identifiersList
@@ -94,13 +104,20 @@ stmts = (do a <- assign <|> varDecl
             b <- stmts
             return (a ++ b)) <|> (return [])
 
+block :: ParsecT [Token] [(Token,Token)] IO([Token])
+block = (do a <- beginscopeToken
+            b <- stmts
+            c <- endscopeToken
+            return (a:b ++ [c]))
+
 assign :: ParsecT [Token] [(Token,Token)] IO([Token])
 assign = do
           a <- idToken
           b <- assignToken
-          c <- intToken <|> floatToken <|> booleanToken <|> charToken 
-                <|> stringToken
-          d <- semiColonToken
+          c <- expression 
+          --intToken <|> floatToken <|> booleanToken <|> charToken 
+            --    <|> stringToken
+          d <- semicolonToken
           updateState(symtable_update (a, c))
           s <- getState
           liftIO (print s)
@@ -109,11 +126,11 @@ assign = do
 -- funções para a tabela de símbolos
 
 get_default_value :: Token -> Token
-get_default_value (Type "int") = Int 0
-get_default_value (Type "float") = Float 0.0
-get_default_value (Type "boolean") = Boolean "false"
-get_default_value (Type "char") = Char 'a'
-get_default_value (Type "string") = String ""
+get_default_value (Type "int" (l, c)) = Int 0 (l, c)
+get_default_value (Type "float" (l, c)) = Float 0.0 (l, c)
+get_default_value (Type "boolean" (l, c)) = Boolean "false" (l, c)
+get_default_value (Type "char" (l, c)) = Char 'a' (l, c)
+get_default_value (Type "string" (l, c)) = String "" (l, c)
 
 symtable_insert :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
 symtable_insert symbol []  = [symbol]
@@ -121,9 +138,10 @@ symtable_insert symbol symtable = symtable ++ [symbol]
 
 symtable_update :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
 symtable_update _ [] = fail "variable not found"
-symtable_update (id1, v1) ((id2, v2):t) = 
-                               if id1 == id2 then (id1, v1) : t
-                               else (id2, v2) : symtable_update (id1, v1) t
+symtable_update (Id id1 p1, v1) ((Id id2 p2, v2):t) = 
+           if id1 == id2 then (Id id1 p2, v1) : t
+           else (Id id2 p2, v2) : symtable_update (Id id1 p1, v1) t
+
 
 symtable_remove :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
 symtable_remove _ [] = fail "variable not found"
