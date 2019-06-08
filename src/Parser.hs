@@ -5,13 +5,14 @@ import Lexer
 import Expressions
 import Text.Parsec
 import Control.Monad.IO.Class
+import SymTable
 
 import System.IO.Unsafe
 import System.Environment
 
--- parsers para os não-terminais
+-- EBNF based:
 
-program :: ParsecT [Token] [(Token,Token)] IO ([Token])
+program :: ParsecT [Token] [(MemCell)] IO ([Token])
 program = do
             p <- preDecls
             d <- beginToken 
@@ -23,16 +24,16 @@ program = do
             return (p ++ [d] ++ [a] ++ e ++ f:[g])
 
 -- Pre declarations
-preDecls :: ParsecT [Token] [(Token,Token)] IO([Token])
+preDecls :: ParsecT [Token] [(MemCell)] IO([Token])
 preDecls = (do a <- constDecl <|> varDecl <|> function <|> procedure
                b <- preDecls
                return (a ++ b)) <|> (return [])
 
-voidTokens :: ParsecT [Token] [(Token,Token)] IO([Token])
+voidTokens :: ParsecT [Token] [(MemCell)] IO([Token])
 voidTokens =  do
             return []
 
-constDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
+constDecl :: ParsecT [Token] [(MemCell)] IO([Token])
 constDecl = do
             z <- constToken
             a <- typeToken
@@ -40,22 +41,22 @@ constDecl = do
             i <- assignToken
             c <- expression
             e <- semicolonToken
-            updateState(symtable_insert (b, c))
+            updateState(symtable_insert (Var (b, c)))
             s <- getState
             liftIO (print s)
             return (z:a:b:i:c:[e])
 
-varDecl :: ParsecT [Token] [(Token,Token)] IO([Token])
+varDecl :: ParsecT [Token] [(MemCell)] IO([Token])
 varDecl = do
             a <- typeToken
             b <- idToken
             e <- semicolonToken
-            updateState(symtable_insert (b, get_default_value a))
+            updateState(symtable_insert (Var (b, get_default_value a)))
             s <- getState
             liftIO (print s)
             return (a:b:[e])
 
-function :: ParsecT [Token] [(Token,Token)] IO([Token])
+function :: ParsecT [Token] [(MemCell)] IO([Token])
 function = do
             f <- functionToken
             a <- typeToken
@@ -66,7 +67,7 @@ function = do
             e <- block
             return (f:a:b:[c] ++ d:e)
 
-procedure :: ParsecT [Token] [(Token,Token)] IO([Token])
+procedure :: ParsecT [Token] [(MemCell)] IO([Token])
 procedure = do
             f <- procedureToken
             b <- idToken
@@ -76,7 +77,7 @@ procedure = do
             e <- block
             return (f:b:c:p ++ (d:e))
 
-paramsList :: ParsecT [Token] [(Token,Token)] IO([Token])
+paramsList :: ParsecT [Token] [(MemCell)] IO([Token])
 paramsList = (do
                a <- typeToken
                b <- idToken
@@ -99,18 +100,18 @@ identifiersList = (do
                     c <- identifiersList
                     return (a:b:c)) <|> (return [])
 
-stmts :: ParsecT [Token] [(Token,Token)] IO([Token])
+stmts :: ParsecT [Token] [(MemCell)] IO([Token])
 stmts = (do a <- assign <|> varDecl
             b <- stmts
             return (a ++ b)) <|> (return [])
 
-block :: ParsecT [Token] [(Token,Token)] IO([Token])
+block :: ParsecT [Token] [(MemCell)] IO([Token])
 block = (do a <- beginscopeToken
             b <- stmts
             c <- endscopeToken
             return (a:b ++ [c]))
 
-assign :: ParsecT [Token] [(Token,Token)] IO([Token])
+assign :: ParsecT [Token] [(MemCell)] IO([Token])
 assign = do
           a <- idToken
           b <- assignToken
@@ -118,37 +119,10 @@ assign = do
           --intToken <|> floatToken <|> booleanToken <|> charToken 
             --    <|> stringToken
           d <- semicolonToken
-          updateState(symtable_update (a, c))
+          updateState(symtable_update (Var (a, c)))
           s <- getState
           liftIO (print s)
           return (a:b:c:[d])
-
--- funções para a tabela de símbolos
-
-get_default_value :: Token -> Token
-get_default_value (Type "int" (l, c)) = Int 0 (l, c)
-get_default_value (Type "float" (l, c)) = Float 0.0 (l, c)
-get_default_value (Type "boolean" (l, c)) = Boolean "false" (l, c)
-get_default_value (Type "char" (l, c)) = Char 'a' (l, c)
-get_default_value (Type "string" (l, c)) = String "" (l, c)
-
-symtable_insert :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
-symtable_insert symbol []  = [symbol]
-symtable_insert symbol symtable = symtable ++ [symbol]
-
-symtable_update :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
-symtable_update _ [] = fail "variable not found"
-symtable_update (Id id1 p1, v1) ((Id id2 p2, v2):t) = 
-           if id1 == id2 then (Id id1 p2, v1) : t
-           else (Id id2 p2, v2) : symtable_update (Id id1 p1, v1) t
-
-
-symtable_remove :: (Token,Token) -> [(Token,Token)] -> [(Token,Token)]
-symtable_remove _ [] = fail "variable not found"
-symtable_remove (id1, v1) ((id2, v2):t) = 
-                               if id1 == id2 then t
-                               else (id2, v2) : symtable_remove (id1, v1) t                               
-
 
 -- invocação do parser para o símbolo de partida 
 
