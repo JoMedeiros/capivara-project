@@ -25,7 +25,7 @@ symtable_insert symbol []  = [symbol]
 symtable_insert symbol symtable = symtable ++ [symbol]
 
 symtable_update :: (MemCell) -> [(MemCell)] -> [(MemCell)]
-symtable_update _ [] = fail "variable not found"
+symtable_update (Var (Id _ (l,c),_)) [] = error ("Variable not declared in the scope at line " ++ (show l) ++ " column " ++ (show c))
 symtable_update (Var (Id id1 p1, v1)) ((Var (Id id2 p2, v2)):t) = 
            if id1 == id2 then (Var (Id id1 p2, v1)) : t
            else (Var (Id id2 p2, v2)) : symtable_update (Var (Id id1 p1, v1)) t

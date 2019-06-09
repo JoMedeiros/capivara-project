@@ -16,7 +16,7 @@ variable =  (do
                 return (getVal a s))
  
 getVal :: Token -> [MemCell] -> Token
-getVal _ [] = error "variable not found"
+getVal (Id _ (l, c)) [] = error ("variable not declared in the scope at line " ++ (show l) ++ " column " ++ (show c))
 getVal (Id id1 p1) ((Var (Id id2 _, val)):t) = if id1 == id2 then val
                                          else getVal (Id id1 p1) t
 
