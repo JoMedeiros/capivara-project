@@ -112,10 +112,9 @@ eval :: Token -> Token -> Token -> Token
 eval (Int x p) (Plus _ ) (Int y _) = Int (x + y) p
 eval (Int x p) (Minus _ ) (Int y _) = Int (x - y) p
 eval (Int x p) (Mult _ ) (Int y _) = Int (x * y) p
--- TODO Handle error division by zero
-eval (Int x p) (Div _ ) (Int 0 _) = Int (88888888) p
+eval (Int x (l,c)) (Div _ ) (Int 0 _) = error ("Error: Division by zero on line " ++ (show l) ++ " column " ++ (show c))
 eval (Int x p) (Div _ ) (Int y _) = Int (x `div` y) p
-eval (Int x p) (Mod _ ) (Int 0 _) = Int (8888888) p
+eval (Int x (l,c)) (Mod _ ) (Int 0 _) = error ("Error: Division by zero on line " ++ (show l) ++ " column " ++ (show c))
 eval (Int x p) (Mod _ ) (Int y _) = Int (x `mod` y) p
 eval (Int x p) (Power _ ) (Int y _) = Int (x ^ y) p
 

@@ -1,0 +1,5 @@
+
+src/*.hi
+src/*.o
+src/Parser
+

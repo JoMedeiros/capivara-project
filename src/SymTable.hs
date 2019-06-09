@@ -2,7 +2,13 @@ module SymTable where
 import Tokens
 
 -- Data Definitions
-data MemCell = Var (Token, Token) -- Variable Token: (Id, value)
+data Scope = Global         | -- Global variables and constants
+             Block Int      | -- For nested blocks
+             Function String Int | -- For functions scope: Function function_id call_id 
+             FuncBlk String Int Int -- For functions scope: Function function_id call_id 
+             deriving (Show, Eq)
+
+data MemCell = Var (Token, Token) -- Variable Token: (id, value, scope_info)
                deriving (Show, Eq)
 
 -- funções para a tabela de símbolos
@@ -23,7 +29,6 @@ symtable_update _ [] = fail "variable not found"
 symtable_update (Var (Id id1 p1, v1)) ((Var (Id id2 p2, v2)):t) = 
            if id1 == id2 then (Var (Id id1 p2, v1)) : t
            else (Var (Id id2 p2, v2)) : symtable_update (Var (Id id1 p1, v1)) t
-
 
 symtable_remove :: (MemCell) -> [(MemCell)] -> [(MemCell)]
 symtable_remove _ [] = fail "variable not found"
