@@ -16,7 +16,7 @@ data MemCell = Var (Token, Token) -- Variable Token: (id, value, scope_info)
 get_default_value :: Token -> Token
 get_default_value (Type "int" (l, c)) = Int 0 (l, c)
 get_default_value (Type "float" (l, c)) = Float 0.0 (l, c)
-get_default_value (Type "boolean" (l, c)) = Boolean "false" (l, c)
+get_default_value (Type "boolean" (l, c)) = Boolean False (l, c)
 get_default_value (Type "char" (l, c)) = Char 'a' (l, c)
 get_default_value (Type "string" (l, c)) = String "" (l, c)
 

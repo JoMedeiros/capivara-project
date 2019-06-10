@@ -13,7 +13,7 @@ $alpha = [a-zA-Z] -- alphabetic characters
 tokens :-
 
   $white+                         ;
-  "--".*                          ; -- comment
+  "#".*                           ; -- comment
   begin                           { \p s -> Begin (getLC p) }
   program                         { \p s -> Program  (getLC p) }
   end                             { \p s -> End (getLC p) }
@@ -65,8 +65,8 @@ tokens :-
   $digit+                         { \p s -> Int (read s)  (getLC p) }
   $digit+\.$digit+                { \p s -> Float (read s)  (getLC p) }
   \'.\'                           { \p s -> Char (read s)  (getLC p) }
-  "true"                          { \p s -> Boolean s (getLC p) }
-  "false"                         { \p s -> Boolean s (getLC p) }
+  "True"                          { \p s -> Boolean (read s) (getLC p) }
+  "False"                         { \p s -> Boolean (read s) (getLC p) }
   $alpha [$alpha $digit \_ \']*   { \p s -> Id s  (getLC p) }
   \" $alpha [. [^\"] \']* \"      { \p s -> String s (getLC p) }
 {
@@ -118,7 +118,7 @@ data Token =
   Int  Int        (Int, Int) |
   Float Float     (Int, Int) |
   Char Char       (Int, Int) |
-  Boolean String  (Int, Int) |
+  Boolean Bool  (Int, Int) |
   String   String (Int, Int)
   deriving (Eq,Show)
 

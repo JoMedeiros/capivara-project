@@ -1,0 +1,12 @@
+# Pre declarations
+begin program
+  boolean x;
+  boolean y;
+  boolean z;
+  x = True;
+  y = True;
+
+  z = x xor y;
+
+end program
+
