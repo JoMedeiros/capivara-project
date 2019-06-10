@@ -2,26 +2,33 @@
 
 ## Compiling and Running
 
-To compile run the script:
+To compile run command:
 
-`./make.sh`
+```
+make.sh
+```
 
-## Milestones
+Inside the directory `language_examples` there are code examples to test.
+To execute, for instance the program `language_examples/example.cpv` run the command:
 
-TODOs
+```
+./bin/main language_examples/example.cpv
+```
 
-- [ ] Change a symbols table to use a generic type Cell
-- [x] Finish the Lexer.hs (create all the tokens defined in the BNF)
-- [x] Finish the Tokens.hs (along with the Lexer)
-- [ ] Continue the Parser
-  - [ ] ...
-- [ ] Implement Expressions.hs
-  - [ ] Put identifier as a valid Expression
-  - [ ] Define expressions recursevly
-  - [ ] Implement expressions evaluation
-- [ ] Create a Makefile
-- [ ] Put other variables type in parser (currently there's only int)
-- [ ] ...
+## Features
+
+### Variable Types
+
+Primitive types:
+
+```
+int x;
+float y;
+boolean z;
+```
+- int : integer number
+- flaot : floating number
+- boolean : True or False
 
 ### Unsolved Issues:
 

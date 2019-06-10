@@ -7,7 +7,7 @@ import Tokens
 main :: IO ()
 main = do
        (file:args) <-getArgs
-       putStrLn file
+       -- putStrLn file
        case unsafePerformIO (parser (getTokens file)) of
             { Left err -> print err; 
               Right ans -> print ans
