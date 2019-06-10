@@ -1,0 +1,13 @@
+
+-- Pre declarations
+begin program
+  int a;
+  int b;
+  int c;
+  a = 9;
+  b = 2;
+  {
+    c = a*b**2 +  a /b;
+  }
+end program
+

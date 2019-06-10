@@ -1,4 +1,5 @@
-module Main (main) where
+-- module Main (main) where
+module Parser where
 
 import Tokens
 import Lexer
@@ -7,8 +8,8 @@ import Text.Parsec
 import Control.Monad.IO.Class
 import SymTable
 
-import System.IO.Unsafe
-import System.Environment
+-- import System.IO.Unsafe
+-- import System.Environment
 
 -- EBNF based:
 
@@ -101,7 +102,7 @@ identifiersList = (do
                     return (a:b:c)) <|> (return [])
 
 stmts :: ParsecT [Token] [(MemCell)] IO([Token])
-stmts = (do a <- assign <|> varDecl
+stmts = (do a <- assign <|> varDecl <|> block
             b <- stmts
             return (a ++ b)) <|> (return [])
 
@@ -129,11 +130,11 @@ assign = do
 parser :: [Token] -> IO (Either ParseError [Token])
 parser tokens = runParserT program [] "Error message" tokens
 
-main :: IO ()
-main = do
-       (file:args) <-getArgs
-       putStrLn file
-       case unsafePerformIO (parser (getTokens file)) of
-            { Left err -> print err; 
-              Right ans -> print ans
-            }
+-- main :: IO ()
+-- main = do
+--        (file:args) <-getArgs
+--        putStrLn file
+--        case unsafePerformIO (parser (getTokens file)) of
+--             { Left err -> print err; 
+--               Right ans -> print ans
+--             }
