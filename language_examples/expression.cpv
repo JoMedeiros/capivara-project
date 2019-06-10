@@ -1,11 +1,19 @@
--- Pre declarations
+# Pre declarations
 begin program
+  boolean x;
+  boolean y;
+  boolean z;
+  x = True;
+  y = False;
+
+  z = x and y;
+
   int a;
   int b;
   int c;
   a = 9;
   b = 2;
-  --c = (a + b) * ( a - b );
-  n = a*b**2 +  a /b;
+  #c = (a + b) * ( a - b );
+  #n = a*b**2 +  a /b;
 end program
 
