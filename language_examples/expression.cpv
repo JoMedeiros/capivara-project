@@ -9,11 +9,11 @@ begin program
   z = x and y;
 
   int a;
-  int b;
+  string b;
   int c;
   a = 9;
-  b = 2;
-  c = a*b**2 +  a /b;
-  b = c;
+  b = "";
+  #c = a*b**2 +  a /b;
+  #b = c;
 end program
 

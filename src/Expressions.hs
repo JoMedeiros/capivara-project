@@ -142,20 +142,20 @@ term4 = try bin_term4 <|> una_term4
 una_term4 :: ParsecT [Token] CapivaraState IO(Token)
 una_term4 =  (do
                 op <- powerToken
-                a <- intToken <|> variable <|> booleanToken 
+                a <- intToken <|> booleanToken <|> floatToken <|> stringToken <|> variable 
                 return (a))
  
 --- funções considerando associatividade à esquerda                  
 bin_term4 :: ParsecT [Token] CapivaraState IO(Token)
 bin_term4 = do
-                   n1 <- intToken <|> variable <|> booleanToken 
+                   n1 <- intToken <|> booleanToken <|> floatToken <|> stringToken <|> variable
                    result <- eval_term4 n1
                    return (result)
 
 eval_term4 :: Token -> ParsecT [Token] CapivaraState IO(Token)
 eval_term4 n1 = do
                     op <- powerToken
-                    n2 <- intToken <|> variable <|> booleanToken
+                    n2 <- intToken <|> booleanToken  <|> floatToken <|> stringToken <|> variable 
                     result <- eval_term4 (eval n1 op n2)
                     return (result) 
                     <|> return (n1)                              
@@ -179,4 +179,4 @@ eval (Int x p) (Greater _ ) (Int y _) = Boolean (x > y) p
 eval (Int x p) (Less _ ) (Int y _) = Boolean (x < y) p
 eval (Int x p) (GreaterOrEqual _ ) (Int y _) = Boolean (x >= y) p
 eval (Int x p) (LessOrEqual _ ) (Int y _) = Boolean (x <= y) p
-
+eval _ _ _ = error("Type error")

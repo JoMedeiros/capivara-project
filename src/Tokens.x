@@ -56,6 +56,8 @@ tokens :-
   "mod"                           { \p s -> Mod (getLC p) }
   if                              { \p s -> If (getLC p) }
   elif                            { \p s -> Elif (getLC p) }
+  while                           { \p s -> While (getLC p) }
+  for                             { \p s -> For (getLC p) }
   else                            { \p s -> Else (getLC p) }
   switch                          { \p s -> Switch (getLC p) }
   case                            { \p s -> Case (getLC p) }
@@ -68,7 +70,7 @@ tokens :-
   "True"                          { \p s -> Boolean (read s) (getLC p) }
   "False"                         { \p s -> Boolean (read s) (getLC p) }
   $alpha [$alpha $digit \_ \']*   { \p s -> Id s  (getLC p) }
-  \" $alpha [. [^\"] \']* \"      { \p s -> String s (getLC p) }
+  \".*\"      { \p s -> String s (getLC p) }
 {
 -- Each action has type :: String -> Token
 -- The token type:
@@ -84,6 +86,8 @@ data Token =
   Function        (Int, Int) |
   Procedure       (Int, Int) |
   If              (Int, Int) |
+  While           (Int, Int) |
+  For             (Int, Int) |
   Then            (Int, Int) |
   Write           (Int, Int) |
   BeginScope      (Int, Int) |
@@ -118,7 +122,7 @@ data Token =
   Int  Int        (Int, Int) |
   Float Float     (Int, Int) |
   Char Char       (Int, Int) |
-  Boolean Bool  (Int, Int) |
+  Boolean Bool    (Int, Int) |
   String   String (Int, Int)
   deriving (Eq,Show)
 

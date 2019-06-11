@@ -60,6 +60,40 @@ varDecl = do
             liftIO (print s)
             return (a:b:[e])
 
+ifStatement :: ParsecT [Token] CapivaraState IO([Token])
+ifStatement = do
+            f <- ifToken
+            a <- beginbracketToken
+            b <- expression
+            c <- endbracketToken
+            d <- block
+            return (f:a:b:c:d)
+
+whileStatement :: ParsecT [Token] CapivaraState IO([Token])
+whileStatement = do
+            f <- whileToken
+            a <- beginbracketToken
+            b <- expression
+            c <- endbracketToken
+            d <- block
+            return (f:a:b:c:d)
+{-
+forStatement :: ParsecT [Token] CapivaraState IO([Token])
+forStatement = do
+            f <- forToken
+            a <- beginbracketToken
+            
+            b <- 
+
+            c <- semicolonToken
+            d <- expression
+            e <- semicolonToken
+            g <- expression
+            h <- endbracketToken
+            i <- expression
+            j <- block
+            return (f:a:b:c:d:e:g:h:i:j)            
+-}
 function :: ParsecT [Token] CapivaraState IO([Token])
 function = do
             f <- functionToken
@@ -69,7 +103,7 @@ function = do
             p <- paramsList
             d <- endbracketToken
             e <- block
-            return (f:a:b:[c] ++ d:e)
+            return (f:a:b:c:d:e)
 
 procedure :: ParsecT [Token] CapivaraState IO([Token])
 procedure = do
