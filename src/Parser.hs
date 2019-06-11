@@ -16,8 +16,11 @@ import SymTable
 program :: ParsecT [Token] CapivaraState IO ([Token])
 program = do
             p <- preDecls
+            s <- getState
+            liftIO (print s)
             d <- beginToken 
             a <- programToken 
+            updateState( initScope )
             e <- stmts
             f <- endToken
             g <- programToken 
@@ -42,7 +45,7 @@ constDecl = do
             i <- assignToken
             c <- expression
             e <- semicolonToken
-            updateState(capivaraStateInsert ( (b, c)))
+            updateState(capivaraStateInsert ( b, c ))
             s <- getState
             liftIO (print s)
             return (z:a:b:i:c:[e])

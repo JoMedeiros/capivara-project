@@ -11,8 +11,22 @@ type CapivaraState = (Int, Int, [Scope], [Enumerate])
 -- current scope ID, parent scope ID, symbols table
 type Scope = (Int, Int, [TableEntry])
 
--- Nome, Tipo, Valor
+-- (Token Id Name, Token Type Value)
+-- @TODO Change second Token to a most generic data type.
+  -- this date type should be a Token of value (ex: IntToken)
+  -- or a list of Tokens (in case of functions)
 type TableEntry = (Token, Token)
+
+-------------------- State Functions--------------------
+initScope :: CapivaraState -> CapivaraState
+initScope (sc,vc,[],enums) = (sc+1,vc,[scope],enums) where
+        scope = (sc+1, sc, [])
+initScope (sc,vc,scs,enums) = (sc+1,vc,scope:scs,enums) where
+        scope = (sc+1, sc, [])
+
+popScope :: CapivaraState -> CapivaraState
+popScope (sc,vc,[],enums) = (sc-1,vc,[],enums)
+popScope (sc,vc,s:scs,enums) = (sc-1,vc,scs,enums)
 
 -- Returning current Scope
 getCurrentScope :: CapivaraState -> Scope

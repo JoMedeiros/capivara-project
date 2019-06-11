@@ -1,4 +1,6 @@
 # Pre declarations
+int x;
+int y;
 begin program
   int a;
   int b;
