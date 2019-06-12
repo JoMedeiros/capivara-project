@@ -163,20 +163,77 @@ eval_term4 n1 = do
 -- Expression evaluation
 eval :: Token -> Token -> Token -> Token
 eval (Int x p) (Plus _ ) (Int y _) = Int (x + y) p
+eval (Float x p) (Plus _ ) (Int y _) = Float (x + (fromIntegral y)) p
+eval (Int x p) (Plus _ ) (Float y _) = Float (fromIntegral x + y) p
+eval (Float x p) (Plus _ ) (Float y _) = Float (x + y) p
+
 eval (Int x p) (Minus _ ) (Int y _) = Int (x - y) p
+eval (Float x p) (Minus _ ) (Int y _) = Float (x - (fromIntegral y)) p
+eval (Int x p) (Minus _ ) (Float y _) = Float (fromIntegral x - y) p
+eval (Float x p) (Minus _ ) (Float y _) = Float (x - y) p
+
 eval (Int x p) (Mult _ ) (Int y _) = Int (x * y) p
-eval (Int x (l,c)) (Div _ ) (Int 0 _) = error ("Error: Division by zero on line " ++ (show l) ++ " column " ++ (show c))
+eval (Float x p) (Mult _ ) (Int y _) = Float (x * ( fromIntegral y)) p
+eval (Int x p) (Mult _ ) (Float y _) = Float ((fromIntegral x) * y) p
+eval (Float x p) (Mult _ ) (Float y _) = Float (x * y) p
+
+eval _ (Div _ ) (Int 0 (l,c)) = error ("Error: Division by zero on line " ++ (show l) ++ " column " ++ (show c))
+eval _ (Div _ ) (Float 0 (l,c)) = error ("Error: Division by zero on line " ++ (show l) ++ " column " ++ (show c))
+
 eval (Int x p) (Div _ ) (Int y _) = Int (x `div` y) p
-eval (Int x (l,c)) (Mod _ ) (Int 0 _) = error ("Error: Division by zero on line " ++ (show l) ++ " column " ++ (show c))
+eval (Float x p) (Div _ ) (Int y _) = Float (x / fromIntegral y) p
+eval (Int x p) (Div _ ) (Float y _) = Float (fromIntegral x / y) p
+eval (Float x p) (Div _ ) (Float y _) = Float (x / y) p
+
+eval _ (Mod _ ) (Int 0 (l,c)) = error ("Error: Division by zero on line " ++ (show l) ++ " column " ++ (show c))
+eval _ (Mod _ ) (Float 0 (l,c)) = error ("Error: Division by zero on line " ++ (show l) ++ " column " ++ (show c))
+
 eval (Int x p) (Mod _ ) (Int y _) = Int (x `mod` y) p
+
 eval (Int x p) (Power _ ) (Int y _) = Int (x ^ y) p
-eval (Boolean x p) (OpAnd _ ) (Boolean y _) = Boolean (x && y) p --Colocar erro para entradas nao booleanas
+eval (Float x p) (Power _ ) (Int y _) = Float (x ** (fromIntegral(y))) p
+eval (Int x p) (Power _ ) (Float y _) = Float ((fromIntegral x) ** y) p
+eval (Float x p) (Power _ ) (Float y _) = Float (x ** y) p
+
+eval (Boolean x p) (OpAnd _ ) (Boolean y _) = Boolean (x && y) p
 eval (Boolean x p) (OpOr _ ) (Boolean y _) = Boolean (x || y) p
 eval (Boolean x p) (OpXor _ ) (Boolean y _) = Boolean (x /= y) p
+
 eval (Int x p) (Equal _ ) (Int y _) = Boolean (x == y) p
+eval (Float x p) (Equal _ ) (Int y _) = Boolean (x == (fromIntegral y)) p
+eval (Int x p) (Equal _ ) (Float y _) = Boolean ((fromIntegral x) == y) p
+eval (Float x p) (Equal _ ) (Float y _) = Boolean (x == y) p
+eval (Boolean x p) (Equal _ ) (Boolean y _) = Boolean (x == y) p
+eval (String x p) (Equal _ ) (String y _) = Boolean (x == y) p
+eval (Char x p) (Equal _ ) (Char y _) = Boolean (x == y) p
+
 eval (Int x p) (Different _ ) (Int y _) = Boolean (x /= y) p
+eval (Float x p) (Different _ ) (Int y _) = Boolean (x /= (fromIntegral y)) p
+eval (Int x p) (Different _ ) (Float y _) = Boolean ((fromIntegral x) /= y) p
+eval (Float x p) (Different _ ) (Float y _) = Boolean (x /= y) p
+eval (Boolean x p) (Different _ ) (Boolean y _) = Boolean (x /= y) p
+eval (String x p) (Different _ ) (String y _) = Boolean (x /= y) p
+eval (Char x p) (Different _ ) (Char y _) = Boolean (x /= y) p
+
 eval (Int x p) (Greater _ ) (Int y _) = Boolean (x > y) p
+eval (Float x p) (Greater _ ) (Int y _) = Boolean (x > (fromIntegral y)) p
+eval (Int x p) (Greater _ ) (Float y _) = Boolean ((fromIntegral x) > y) p
+eval (Float x p) (Greater _ ) (Float y _) = Boolean (x > y) p
+
 eval (Int x p) (Less _ ) (Int y _) = Boolean (x < y) p
+eval (Float x p) (Less _ ) (Int y _) = Boolean (x < (fromIntegral y)) p
+eval (Int x p) (Less _ ) (Float y _) = Boolean ((fromIntegral x) < y) p
+eval (Float x p) (Less _ ) (Float y _) = Boolean (x < y) p
+
 eval (Int x p) (GreaterOrEqual _ ) (Int y _) = Boolean (x >= y) p
+eval (Float x p) (GreaterOrEqual _ ) (Int y _) = Boolean (x >= (fromIntegral y)) p
+eval (Int x p) (GreaterOrEqual _ ) (Float y _) = Boolean ((fromIntegral x) >= y) p
+eval (Float x p) (GreaterOrEqual _ ) (Float y _) = Boolean (x >= y) p
+
 eval (Int x p) (LessOrEqual _ ) (Int y _) = Boolean (x <= y) p
-eval _ _ _ = error("Type error")
+eval (Float x p) (LessOrEqual _ ) (Int y _) = Boolean (x <= (fromIntegral y)) p
+eval (Int x p) (LessOrEqual _ ) (Float y _) = Boolean ((fromIntegral x) <= y) p
+eval (Float x p) (LessOrEqual _ ) (Float y _) = Boolean (x <= y) p
+
+eval _ _ _ = error("Type error on evaluation")
+

@@ -9,10 +9,10 @@ begin program
   z = x and y;
 
   int a;
-  string b;
+  int b;
   int c;
   a = 9;
-  b = "";
+  b = "inteiro";
   #c = a*b**2 +  a /b;
   #b = c;
 end program

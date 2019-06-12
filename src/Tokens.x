@@ -22,6 +22,7 @@ tokens :-
   procedure                       { \p s -> Procedure (getLC p) }
   then                            { \p s -> Then (getLC p) }
   write                           { \p s -> Write (getLC p) }
+  "read"                          { \p s -> Read (getLC p) }
   "{"                             { \p s -> BeginScope (getLC p) }
   "}"                             { \p s -> EndScope (getLC p) }
   "("                             { \p s -> BeginBracket (getLC p) }
@@ -70,7 +71,7 @@ tokens :-
   "True"                          { \p s -> Boolean (read s) (getLC p) }
   "False"                         { \p s -> Boolean (read s) (getLC p) }
   $alpha [$alpha $digit \_ \']*   { \p s -> Id s  (getLC p) }
-  \".*\"      { \p s -> String s (getLC p) }
+  \".*\"                          { \p s -> String s (getLC p) }
 {
 -- Each action has type :: String -> Token
 -- The token type:
@@ -90,6 +91,7 @@ data Token =
   For             (Int, Int) |
   Then            (Int, Int) |
   Write           (Int, Int) |
+  Read            (Int, Int) |
   BeginScope      (Int, Int) |
   EndScope        (Int, Int) |
   BeginBracket    (Int, Int) |

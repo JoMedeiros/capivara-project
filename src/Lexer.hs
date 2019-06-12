@@ -89,6 +89,11 @@ writeToken = tokenPrim show update_pos get_token where
   get_token (Write p) = Just (Write p)
   get_token _ = Nothing
 
+readToken :: ParsecT [Token] st IO(Token)
+readToken = tokenPrim show update_pos get_token where
+  get_token (Read p) = Just (Read p)
+  get_token _ = Nothing
+
 beginscopeToken :: ParsecT [Token] st IO(Token)
 beginscopeToken = tokenPrim show update_pos get_token where
   get_token (BeginScope p) = Just (BeginScope p)

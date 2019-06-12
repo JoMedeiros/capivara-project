@@ -6,7 +6,7 @@ type Enumerate = (String,[Token]) -- enum_name, iDs names list
 -- Scope counter, anonymous variables counter, Scope stack, 
 -- user defined types list 
 -- @TODO create a Token for Enumerate type
-type CapivaraState = (Int, Int, [Scope], [Enumerate])  
+type CapivaraState = (Int, Int, [Scope], [Enumerate])
 
 -- current scope ID, parent scope ID, symbols table
 type Scope = (Int, Int, [TableEntry])
@@ -75,4 +75,22 @@ symtable_remove _ [] = fail "variable not found"
 symtable_remove (id1, v1) ((id2, v2):t) = 
                                if id1 == id2 then t
                                else ( (id2, v2)) : symtable_remove ( (id1, v1)) t                               
+
+--- Type verification ---
+get_type :: Token -> [TableEntry] -> Token
+get_type _ [] = error "variable not found"
+get_type (Id id1 p1) ((Id id2 _, value):t) = if id1 == id2 then value
+                                             else get_type (Id id1 p1) t
+
+compatible :: Token -> Token -> Bool
+compatible (Int _ _) (Int _ _) = True
+compatible (Float _ _) (Float _ _) = True
+compatible (Boolean _ _) (Boolean _ _) = True
+compatible (String _ _) (String _ _) = True
+--compatible _ _ = False
+compatible (Int _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
+compatible (Float _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
+compatible (Boolean _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
+compatible (String _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
+
 

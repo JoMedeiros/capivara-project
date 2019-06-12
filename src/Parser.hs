@@ -17,7 +17,7 @@ program :: ParsecT [Token] CapivaraState IO ([Token])
 program = do
             p <- preDecls
             s <- getState
-            liftIO (print s)
+            ----liftIO (print s)
             d <- beginToken 
             a <- programToken 
             updateState( initScope )
@@ -47,7 +47,7 @@ constDecl = do
             e <- semicolonToken
             updateState(capivaraStateInsert ( b, c ))
             s <- getState
-            liftIO (print s)
+            --liftIO (print s)
             return (z:a:b:i:c:[e])
 
 varDecl :: ParsecT [Token] CapivaraState IO([Token])
@@ -57,7 +57,7 @@ varDecl = do
             e <- semicolonToken
             updateState(capivaraStateInsert ( (b, get_default_value a)))
             s <- getState
-            liftIO (print s)
+            --liftIO (print s)
             return (a:b:[e])
 
 ifStatement :: ParsecT [Token] CapivaraState IO([Token])
@@ -139,7 +139,7 @@ identifiersList = (do
                     return (a:b)) <|> (return [])
 
 stmts :: ParsecT [Token] CapivaraState IO([Token])
-stmts = (do a <- assign <|> varDecl <|> block
+stmts = (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> capivaraRead
             b <- stmts
             return (a ++ b)) <|> (return [])
 
@@ -153,14 +153,54 @@ assign :: ParsecT [Token] CapivaraState IO([Token])
 assign = do
           a <- idToken
           b <- assignToken
-          c <- expression 
-          --intToken <|> floatToken <|> booleanToken <|> charToken 
-            --    <|> stringToken
+          c <- expression
           d <- semicolonToken
-          updateState(capivaraStateUpdate ( (a, c)))
-          s <- getState
-          liftIO (print s)
-          return (a:b:c:[d])
+          (_, _, [(_, _, table)], _) <- getState
+          -- s <- getState
+          if (not (compatible (get_type a table) c)) then 
+            error "Type mismatch"
+          else
+            do
+              updateState(capivaraStateUpdate(a, c))
+              s <- getState
+              --liftIO (print s)
+              return (a:b:c:[d])
+
+-- TODO fazer funções para "printar" cada tipo
+capivaraWrite :: ParsecT [Token] CapivaraState IO([Token])
+capivaraWrite = do
+                a <- writeToken
+                b <- expression
+                c <- semicolonToken
+                liftIO (putStr (token2str b))
+                return (a:b:[c])
+
+token2str :: Token -> String
+token2str (Int v p) = show v
+token2str (Float v p) = show v
+token2str (Char v p) = show v
+token2str (Boolean v p) = show v
+token2str (String v p) = read v
+token2str t = show t
+
+capivaraRead :: ParsecT [Token] CapivaraState IO([Token])
+capivaraRead = do 
+               a <- readToken
+               b <- greaterToken
+               c <- idToken
+               d <- semicolonToken
+               v <- liftIO $ getLine
+               (_, _, [(_, _, table)], _) <- getState
+               updateState(capivaraStateUpdate(c, (generateToken (get_type c table) (show v) ))) 
+               return ([a])
+
+generateToken :: Token -> String -> Token
+generateToken (String _ p ) s = (String s p)
+generateToken (Int _ p) s = (Int (read (read s)) p)
+generateToken (Float _ p) s = (Float (read (read s)) p)
+generateToken (Char _ p) s = (Char (read (read s)) p)
+generateToken (Boolean _ p) s = (Boolean (read (read s)) p)
+generateToken _ _ = error "error: input type error"
 
 -- invocação do parser para o símbolo de partida 
 
