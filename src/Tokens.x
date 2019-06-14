@@ -40,8 +40,8 @@ tokens :-
   List                            { \p s -> Type s (getLC p) }
   Mat                             { \p s -> Type s (getLC p) }
   Table                           { \p s -> Type s (getLC p) }
-  "="                             { \p s -> Assign (getLC p) }
   "=="                            { \p s -> Equal (getLC p) }
+  "="                             { \p s -> Assign (getLC p) }
   "!="                            { \p s -> Different (getLC p) }
   ">"                             { \p s -> Greater (getLC p) }
   "<"                             { \p s -> Less (getLC p) }

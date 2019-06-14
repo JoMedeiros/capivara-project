@@ -1,0 +1,18 @@
+# Crie um programa que leia uma quantidade desconhecida de números e informe
+# quantos deles estão nos seguintes intervalos fechados: [0, 25], [26, 50], [51, 75]
+# e [76, 100]. A entrada de dados deve terminar quando for lido um número
+# negativo.
+# Pre declarations
+begin program
+  int x;
+
+  write "digite o valor de x: \n";
+  read > x;
+
+  while (x >= 0) {
+    write "digite outro valor para x: \n";
+    read > x;
+  }
+
+end program
+

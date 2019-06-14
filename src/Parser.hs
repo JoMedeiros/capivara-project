@@ -69,14 +69,40 @@ ifStatement = do
             d <- block
             return (f:a:b:c:d)
 
+-------------------- While --------------------
 whileStatement :: ParsecT [Token] CapivaraState IO([Token])
 whileStatement = do
+            ws <- getInput 
             f <- whileToken
             a <- beginbracketToken
             b <- expression
             c <- endbracketToken
-            d <- block
-            return (f:a:b:c:d)
+            if (tokenIsTrue b) then ( do
+                d <- block
+                setInput ws
+                return (f:a:b:c:d))
+            else ( do
+              d <- ignoreBlk
+              return (f:a:b:c:d))
+
+ignoreBlk :: ParsecT [Token] CapivaraState IO([Token])
+ignoreBlk = (do
+               a <- beginscopeToken
+               b <- ignoreBlk
+               return (a:b)) <|>
+             (do
+               b <- endscopeToken
+               return ([b])) <|>
+              (do
+               a <- anyToken
+               b <- ignoreBlk
+               return (a:b)) <|> (return [])
+
+tokenIsTrue :: Token -> Bool
+tokenIsTrue (Boolean True _) = True
+tokenIsTrue _ = False
+-------------------- /While --------------------
+
 {-
 forStatement :: ParsecT [Token] CapivaraState IO([Token])
 forStatement = do
@@ -139,7 +165,7 @@ identifiersList = (do
                     return (a:b)) <|> (return [])
 
 stmts :: ParsecT [Token] CapivaraState IO([Token])
-stmts = (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> capivaraRead
+stmts = (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> capivaraRead <|> whileStatement
             b <- stmts
             return (a ++ b)) <|> (return [])
 

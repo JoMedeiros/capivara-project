@@ -264,6 +264,9 @@ stringToken = tokenPrim show update_pos get_token where
   get_token (String x p) = Just (String x p)
   get_token _       = Nothing
 
+--anyToken :: ParsecT [Token] st IO (Token)
+--anyToken = tokenPrim show update_pos get_token where
+  --get_token t = Just t
 ----------------------------------------
 --  Auxiliary Functions
 ----------------------------------------
