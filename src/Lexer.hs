@@ -114,6 +114,11 @@ endbracketToken = tokenPrim show update_pos get_token where
   get_token (EndBracket p) = Just (EndBracket p)
   get_token _ = Nothing
 
+listToken :: ParsecT [Token] st IO(Token)
+listToken = tokenPrim show update_pos get_token where
+  get_token (Type "List" p) = Just (Type "List" p)
+  get_token _ = Nothing
+
 beginlistToken :: ParsecT [Token] st IO(Token)
 beginlistToken = tokenPrim show update_pos get_token where
   get_token (BeginList p) = Just (BeginList p)

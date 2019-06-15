@@ -7,6 +7,7 @@ import Expressions
 import Text.Parsec
 import Control.Monad.IO.Class
 import SymTable
+import qualified StatementParser as LittleBoy
 
 -- import System.IO.Unsafe
 -- import System.Environment
@@ -29,7 +30,8 @@ program = do
 
 -- Pre declarations
 preDecls :: ParsecT [Token] CapivaraState IO([Token])
-preDecls = (do a <- constDecl <|> varDecl <|> function <|> procedure
+preDecls = (do a <- constDecl <|> varDecl <|> function <|> 
+                  procedure <|> listDecl
                b <- preDecls
                return (a ++ b)) <|> (return [])
 
@@ -52,7 +54,7 @@ constDecl = do
 
 varDecl :: ParsecT [Token] CapivaraState IO([Token])
 varDecl = do
-            a <- typeToken
+            a <- typeToken <|> listToken
             b <- idToken
             e <- semicolonToken
             updateState(capivaraStateInsert ( (b, get_default_value a)))
@@ -60,14 +62,31 @@ varDecl = do
             --liftIO (print s)
             return (a:b:[e])
 
+listDecl :: ParsecT [Token] CapivaraState IO([Token])
+listDecl = do
+            a <- listToken
+            b <- lessToken
+            c <- typeToken
+            d <- greaterToken
+            e <- idToken
+            f <- semicolonToken
+            updateState(capivaraStateInsert ( (b, get_default_value a)))
+            s <- getState
+            --liftIO (print s)
+            return (a:b:c:d:e:[f])
+
 ifStatement :: ParsecT [Token] CapivaraState IO([Token])
 ifStatement = do
             f <- ifToken
             a <- beginbracketToken
             b <- expression
-            c <- endbracketToken
-            d <- block
-            return (f:a:b:c:d)
+            c <- endbracketToken 
+            if (tokenIsTrue b) then ( do
+                d <- block
+                return (f:a:b:c:d))
+            else ( do
+              d <- LittleBoy.block
+              return (f:a:b:c:d))
 
 -------------------- While --------------------
 whileStatement :: ParsecT [Token] CapivaraState IO([Token])
@@ -77,26 +96,20 @@ whileStatement = do
             a <- beginbracketToken
             b <- expression
             c <- endbracketToken
+            d <- beginscopeToken
             if (tokenIsTrue b) then ( do
-                d <- block
+                e <- stmts
                 setInput ws
-                return (f:a:b:c:d))
+                return (f:a:b:c:d:e))
             else ( do
-              d <- ignoreBlk
-              return (f:a:b:c:d))
-
+              e <- LittleBoy.stmts
+              f <- endscopeToken
+              return (f:a:b:c:d:e))
+-- TODO in nested while ignoreBlk stops at first "}"
 ignoreBlk :: ParsecT [Token] CapivaraState IO([Token])
 ignoreBlk = (do
-               a <- beginscopeToken
-               b <- ignoreBlk
-               return (a:b)) <|>
-             (do
-               b <- endscopeToken
-               return ([b])) <|>
-              (do
-               a <- anyToken
-               b <- ignoreBlk
-               return (a:b)) <|> (return [])
+               a <- manyTill anyToken (endscopeToken)
+               return (a)) <|> (return [])
 
 tokenIsTrue :: Token -> Bool
 tokenIsTrue (Boolean True _) = True
@@ -165,7 +178,7 @@ identifiersList = (do
                     return (a:b)) <|> (return [])
 
 stmts :: ParsecT [Token] CapivaraState IO([Token])
-stmts = (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> capivaraRead <|> whileStatement
+stmts = (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> capivaraRead <|> whileStatement <|> ifStatement
             b <- stmts
             return (a ++ b)) <|> (return [])
 
@@ -179,7 +192,7 @@ assign :: ParsecT [Token] CapivaraState IO([Token])
 assign = do
           a <- idToken
           b <- assignToken
-          c <- expression
+          c <- expression <|> listLiteral
           d <- semicolonToken
           (_, _, [(_, _, table)], _) <- getState
           -- s <- getState

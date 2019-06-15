@@ -125,7 +125,8 @@ data Token =
   Float Float     (Int, Int) |
   Char Char       (Int, Int) |
   Boolean Bool    (Int, Int) |
-  String   String (Int, Int)
+  String   String (Int, Int) |
+  CapivaraList [Token]
   deriving (Eq,Show)
 
 getLC (AlexPn _ l c) = (l, c)  

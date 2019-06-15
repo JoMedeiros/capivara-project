@@ -3,16 +3,47 @@
 # e [76, 100]. A entrada de dados deve terminar quando for lido um número
 # negativo.
 # Pre declarations
+
 begin program
+
+  #Contadores
+  int i1;
+  int i2;
+  int i3;
+  int i4;
   int x;
-
-  write "digite o valor de x: \n";
-  read > x;
-
-  while (x >= 0) {
-    write "digite outro valor para x: \n";
+  x = 0;
+  while (x >= 0) 
+  {
+    write "digite um valor para x: \n";
     read > x;
+
+    if(x >= 0 and x <= 25) 
+    {
+      i1 = i1 + 1;
+    }
+    if(x >= 26 and x <= 50) 
+    {
+      i2 = i2 + 1;
+    }
+    if(x >= 51 and x <= 75) 
+    {
+      i3 = i3 + 1;
+    }
+    if(x >= 76 and x <= 100) 
+    {
+      i4 = i4 + 1;
+    }   
   }
+
+  write i1;
+  write "\n";
+  write i2;
+  write "\n";
+  write i3;
+  write "\n";
+  write i4;
+  write "\n";
 
 end program
 

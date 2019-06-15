@@ -9,6 +9,9 @@ import Control.Monad.IO.Class
 
 import System.IO.Unsafe
 
+-- TODO inplicit cohersion on atribution int Token to float var
+--
+
 variable :: ParsecT [Token] CapivaraState IO(Token)
 variable =  (do 
                 s <- getState
@@ -155,10 +158,18 @@ bin_term4 = do
 eval_term4 :: Token -> ParsecT [Token] CapivaraState IO(Token)
 eval_term4 n1 = do
                     op <- powerToken
-                    n2 <- intToken <|> booleanToken  <|> floatToken <|> stringToken <|> variable 
+                    n2 <- intToken <|> booleanToken  <|> 
+                      floatToken <|> stringToken <|> variable
                     result <- eval_term4 (eval n1 op n2)
                     return (result) 
                     <|> return (n1)                              
+
+listLiteral :: ParsecT [Token] CapivaraState IO(Token)
+listLiteral = (do
+                a <- beginlistToken
+                b <- manyTill (intToken <|> booleanToken  <|> 
+                      floatToken <|> stringToken) (endlistToken)
+                return (CapivaraList b))
 
 -- Expression evaluation
 eval :: Token -> Token -> Token -> Token

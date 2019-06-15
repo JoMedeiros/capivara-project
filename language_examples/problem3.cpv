@@ -1,0 +1,14 @@
+# Pre declarations
+# Multiplicação de matrizes no Haskell
+# mmult a b = [[ sum $ zipWith (*) ar bc | bc <- (transpose b)] | ar <- a ]
+
+
+begin program
+
+List matriz1;
+List matriz2;
+matriz1 = [ 1 2 3 4 ];
+write matriz1;
+
+end program
+

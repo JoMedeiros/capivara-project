@@ -10,6 +10,7 @@ main = do
        -- putStrLn file
        case unsafePerformIO (parser (getTokens file)) of
             { Left err -> print err; 
-              Right ans -> print "Fim"
+              Right ans -> putStr "" 
                 --ans
             }
+

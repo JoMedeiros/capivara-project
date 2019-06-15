@@ -40,6 +40,7 @@ get_default_value (Type "float" (l, c)) = Float 0.0 (l, c)
 get_default_value (Type "boolean" (l, c)) = Boolean False (l, c)
 get_default_value (Type "char" (l, c)) = Char 'a' (l, c)
 get_default_value (Type "string" (l, c)) = String "" (l, c)
+get_default_value (Type "List" (l, c)) = CapivaraList []
 
 capivaraStateInsert :: TableEntry -> CapivaraState -> CapivaraState
 capivaraStateInsert te (sc,vc,[],enums) = 
@@ -87,10 +88,11 @@ compatible (Int _ _) (Int _ _) = True
 compatible (Float _ _) (Float _ _) = True
 compatible (Boolean _ _) (Boolean _ _) = True
 compatible (String _ _) (String _ _) = True
---compatible _ _ = False
+compatible (CapivaraList _) (CapivaraList _) = True
 compatible (Int _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
 compatible (Float _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
 compatible (Boolean _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
 compatible (String _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
+compatible (CapivaraList tks) _ = True
 
 
