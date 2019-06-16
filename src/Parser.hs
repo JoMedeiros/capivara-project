@@ -31,7 +31,7 @@ program = do
 -- Pre declarations
 preDecls :: ParsecT [Token] CapivaraState IO([Token])
 preDecls = (do a <- constDecl <|> varDecl <|> function <|> 
-                  procedure <|> listDecl
+                  procedure
                b <- preDecls
                return (a ++ b)) <|> (return [])
 
@@ -54,26 +54,13 @@ constDecl = do
 
 varDecl :: ParsecT [Token] CapivaraState IO([Token])
 varDecl = do
-            a <- typeToken <|> listToken
+            a <- typeToken <|> listToken <|> matrixToken
             b <- idToken
             e <- semicolonToken
             updateState(capivaraStateInsert ( (b, get_default_value a)))
             s <- getState
             --liftIO (print s)
             return (a:b:[e])
-
-listDecl :: ParsecT [Token] CapivaraState IO([Token])
-listDecl = do
-            a <- listToken
-            b <- lessToken
-            c <- typeToken
-            d <- greaterToken
-            e <- idToken
-            f <- semicolonToken
-            updateState(capivaraStateInsert ( (b, get_default_value a)))
-            s <- getState
-            --liftIO (print s)
-            return (a:b:c:d:e:[f])
 
 ifStatement :: ParsecT [Token] CapivaraState IO([Token])
 ifStatement = do
@@ -192,7 +179,7 @@ assign :: ParsecT [Token] CapivaraState IO([Token])
 assign = do
           a <- idToken
           b <- assignToken
-          c <- expression <|> listLiteral
+          c <- expression 
           d <- semicolonToken
           (_, _, [(_, _, table)], _) <- getState
           -- s <- getState
@@ -220,6 +207,10 @@ token2str (Float v p) = show v
 token2str (Char v p) = show v
 token2str (Boolean v p) = show v
 token2str (String v p) = read v
+token2str (CapivaraList []) = "|"
+token2str (CapivaraList (t:ts)) = "| " ++ (token2str t) ++ " " ++ (token2str (CapivaraList ts))
+token2str (CpvMatrix []) = ""
+token2str (CpvMatrix (t:ts)) = (token2str (CapivaraList t)) ++ "\n" ++ (token2str (CpvMatrix ts))
 token2str t = show t
 
 capivaraRead :: ParsecT [Token] CapivaraState IO([Token])

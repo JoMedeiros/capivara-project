@@ -41,6 +41,7 @@ get_default_value (Type "boolean" (l, c)) = Boolean False (l, c)
 get_default_value (Type "char" (l, c)) = Char 'a' (l, c)
 get_default_value (Type "string" (l, c)) = String "" (l, c)
 get_default_value (Type "List" (l, c)) = CapivaraList []
+get_default_value (Type "Matrix" (l, c)) = CpvMatrix [[]]
 
 capivaraStateInsert :: TableEntry -> CapivaraState -> CapivaraState
 capivaraStateInsert te (sc,vc,[],enums) = 
@@ -79,7 +80,7 @@ symtable_remove (id1, v1) ((id2, v2):t) =
 
 --- Type verification ---
 get_type :: Token -> [TableEntry] -> Token
-get_type _ [] = error "variable not found"
+get_type _ [] = error "variable not declared in this scope\n"
 get_type (Id id1 p1) ((Id id2 _, value):t) = if id1 == id2 then value
                                              else get_type (Id id1 p1) t
 
@@ -89,10 +90,12 @@ compatible (Float _ _) (Float _ _) = True
 compatible (Boolean _ _) (Boolean _ _) = True
 compatible (String _ _) (String _ _) = True
 compatible (CapivaraList _) (CapivaraList _) = True
+compatible (CpvMatrix tks) (CpvMatrix _) = True
 compatible (Int _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
 compatible (Float _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
 compatible (Boolean _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
 compatible (String _ (l,c)) _ = error $ "Type mismatch in line " ++ (show l) ++ " column " ++ (show c)
-compatible (CapivaraList tks) _ = True
+compatible (CapivaraList _) t = error $ "Type mismatch in List\n" ++ "got token: " ++ (show t)
+compatible (CpvMatrix _ ) _ = error $ "Type mismatch in matrix\n"
 
 

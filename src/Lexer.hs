@@ -119,6 +119,11 @@ listToken = tokenPrim show update_pos get_token where
   get_token (Type "List" p) = Just (Type "List" p)
   get_token _ = Nothing
 
+matrixToken :: ParsecT [Token] st IO(Token)
+matrixToken = tokenPrim show update_pos get_token where
+  get_token (Type "Matrix" p) = Just (Type "Matrix" p)
+  get_token _ = Nothing
+
 beginlistToken :: ParsecT [Token] st IO(Token)
 beginlistToken = tokenPrim show update_pos get_token where
   get_token (BeginList p) = Just (BeginList p)

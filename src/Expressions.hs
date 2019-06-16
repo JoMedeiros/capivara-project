@@ -144,32 +144,57 @@ term4 = try bin_term4 <|> una_term4
 
 una_term4 :: ParsecT [Token] CapivaraState IO(Token)
 una_term4 =  (do
-                op <- powerToken
-                a <- intToken <|> booleanToken <|> floatToken <|> stringToken <|> variable 
+                op <- powerToken <|> plusplusToken
+                a <- intToken <|> booleanToken <|> floatToken <|> stringToken
+                    <|> variable <|> try listLiteral <|> try matrixLiteral 
+                    <|> parenExpr
                 return (a))
  
 --- funções considerando associatividade à esquerda                  
 bin_term4 :: ParsecT [Token] CapivaraState IO(Token)
 bin_term4 = do
-                   n1 <- intToken <|> booleanToken <|> floatToken <|> stringToken <|> variable
+                   n1 <- intToken <|> booleanToken <|> floatToken <|> 
+                      stringToken <|> variable <|>  
+                      try listLiteral <|> try matrixLiteral <|> parenExpr
                    result <- eval_term4 n1
                    return (result)
 
 eval_term4 :: Token -> ParsecT [Token] CapivaraState IO(Token)
 eval_term4 n1 = do
-                    op <- powerToken
-                    n2 <- intToken <|> booleanToken  <|> 
-                      floatToken <|> stringToken <|> variable
-                    result <- eval_term4 (eval n1 op n2)
-                    return (result) 
-                    <|> return (n1)                              
+                 op <- powerToken <|> plusplusToken
+                 n2 <- intToken <|> booleanToken  <|> floatToken <|> 
+                    stringToken <|> variable <|> try listLiteral <|> 
+                    try matrixLiteral <|> parenExpr
+                 result <- eval_term4 (eval n1 op n2)
+                 return (result) 
+                 <|> return (n1) 
+
+parenExpr = do
+                 a <- beginbracketToken
+                 b <- expression
+                 c <- endbracketToken
+                 return b
 
 listLiteral :: ParsecT [Token] CapivaraState IO(Token)
 listLiteral = (do
                 a <- beginlistToken
                 b <- manyTill (intToken <|> booleanToken  <|> 
-                      floatToken <|> stringToken) (endlistToken)
+                      floatToken <|> stringToken) (endlistToken) <|>
+                      manyTill variable (endlistToken) <|> (do return [])
                 return (CapivaraList b))
+
+matrixLiteral :: ParsecT [Token] CapivaraState IO(Token)
+matrixLiteral = (do
+                a <- beginlistToken
+                b <- manyTill (listLiteral) (endlistToken) <|>
+                    manyTill variable (endlistToken)
+                return (makeMatrix b))
+
+makeMatrix :: [Token] -> Token
+makeMatrix ls = CpvMatrix (map getTokenList (ls))
+
+getTokenList :: Token -> [Token]
+getTokenList (CapivaraList tks) = tks
 
 -- Expression evaluation
 eval :: Token -> Token -> Token -> Token
@@ -245,6 +270,15 @@ eval (Int x p) (LessOrEqual _ ) (Int y _) = Boolean (x <= y) p
 eval (Float x p) (LessOrEqual _ ) (Int y _) = Boolean (x <= (fromIntegral y)) p
 eval (Int x p) (LessOrEqual _ ) (Float y _) = Boolean ((fromIntegral x) <= y) p
 eval (Float x p) (LessOrEqual _ ) (Float y _) = Boolean (x <= y) p
+
+----- Structured Types -----
+eval (CapivaraList xs) (Plus p) (CapivaraList ys) = 
+   CapivaraList (zipWith3 eval xs (repeat (Plus p)) ys)
+eval (CpvMatrix xs) (Plus p) (CpvMatrix ys) =
+   (makeMatrix (zipWith3 eval (map CapivaraList xs) (repeat (Plus p)) (map CapivaraList ys)))
+eval (CapivaraList xs) (PlusPlus p) x = CapivaraList (xs ++ [x])
+eval (CpvMatrix []) (PlusPlus p) (CapivaraList ys) = CpvMatrix ([ys])
+eval (CpvMatrix xs) (PlusPlus p) (CapivaraList ys) = CpvMatrix (xs ++ [ys])
 
 eval _ _ _ = error("Type error on evaluation")
 

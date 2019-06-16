@@ -38,7 +38,7 @@ tokens :-
   boolean                         { \p s -> Type s (getLC p) }
   string                          { \p s -> Type s (getLC p) }
   List                            { \p s -> Type s (getLC p) }
-  Mat                             { \p s -> Type s (getLC p) }
+  Matrix                          { \p s -> Type s (getLC p) }
   Table                           { \p s -> Type s (getLC p) }
   "=="                            { \p s -> Equal (getLC p) }
   "="                             { \p s -> Assign (getLC p) }
@@ -126,7 +126,8 @@ data Token =
   Char Char       (Int, Int) |
   Boolean Bool    (Int, Int) |
   String   String (Int, Int) |
-  CapivaraList [Token]
+  CapivaraList [Token]       |
+  CpvMatrix [[Token]]
   deriving (Eq,Show)
 
 getLC (AlexPn _ l c) = (l, c)  
