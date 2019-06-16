@@ -3,6 +3,7 @@ module Expressions where
 import Tokens
 import Lexer
 import SymTable
+import Data.List
 
 import Text.Parsec
 import Control.Monad.IO.Class
@@ -178,22 +179,23 @@ parenExpr = do
 listLiteral :: ParsecT [Token] CapivaraState IO(Token)
 listLiteral = (do
                 a <- beginlistToken
-                b <- manyTill (intToken <|> booleanToken  <|> 
-                      floatToken <|> stringToken) (endlistToken) <|>
+                b <- manyTill (floatToken <|> intToken)
+                -- <|> booleanToken  <|> floatToken <|> stringToken) 
+                      (endlistToken) <|>
                       manyTill variable (endlistToken) <|> (do return [])
-                return (CapivaraList b))
+                return (tokens2List b))
 
 matrixLiteral :: ParsecT [Token] CapivaraState IO(Token)
 matrixLiteral = (do
                 a <- beginlistToken
                 b <- manyTill (listLiteral) (endlistToken) <|>
                     manyTill variable (endlistToken)
-                return (makeMatrix b))
+                return (tokens2Matrix b))
 
-makeMatrix :: [Token] -> Token
-makeMatrix ls = CpvMatrix (map getTokenList (ls))
+-- makeMatrix :: [Token] -> Token
+-- makeMatrix ls = CpvMatrix (map getTokenList (ls))
 
-getTokenList :: Token -> [Token]
+getTokenList :: Token -> [Float]
 getTokenList (CapivaraList tks) = tks
 
 -- Expression evaluation
@@ -273,12 +275,37 @@ eval (Float x p) (LessOrEqual _ ) (Float y _) = Boolean (x <= y) p
 
 ----- Structured Types -----
 eval (CapivaraList xs) (Plus p) (CapivaraList ys) = 
-   CapivaraList (zipWith3 eval xs (repeat (Plus p)) ys)
+   CapivaraList (zipWith (+) xs ys)
 eval (CpvMatrix xs) (Plus p) (CpvMatrix ys) =
-   (makeMatrix (zipWith3 eval (map CapivaraList xs) (repeat (Plus p)) (map CapivaraList ys)))
-eval (CapivaraList xs) (PlusPlus p) x = CapivaraList (xs ++ [x])
-eval (CpvMatrix []) (PlusPlus p) (CapivaraList ys) = CpvMatrix ([ys])
-eval (CpvMatrix xs) (PlusPlus p) (CapivaraList ys) = CpvMatrix (xs ++ [ys])
+   (CpvMatrix (zipWith (zipWith (+)) xs ys))
 
+eval (CapivaraList []) (PlusPlus p) (Float x _) = CapivaraList [x]
+eval (CapivaraList xs) (PlusPlus p) (Float x _) = CapivaraList (xs ++ [x])
+eval (CapivaraList []) (PlusPlus p) (Int x _) = CapivaraList [fromIntegral x]
+eval (CapivaraList xs) (PlusPlus p) (Int x _) = CapivaraList (xs ++ [fromIntegral x])
+
+eval (CpvMatrix []) (PlusPlus p) (CapivaraList ys) = CpvMatrix ([ys])
+eval (CpvMatrix [[]]) (PlusPlus p) (CapivaraList ys) = CpvMatrix ([ys])
+eval (CpvMatrix xs) (PlusPlus p) (CapivaraList ys) = CpvMatrix (xs ++ [ys])
+eval (CpvMatrix xs) (Mult p) (CpvMatrix ys) = CpvMatrix (
+      [[ sum $ zipWith (*) ar bc | bc <- (transpose ys)] | ar <- xs ]
+    )
 eval _ _ _ = error("Type error on evaluation")
+
+sumTokens :: [Token] -> Token
+sumTokens [] = (Int 0 (0,0))
+sumTokens [t] = t
+sumTokens (t:ts) = eval t (Mult (0,0)) (sumTokens ts)
+
+tokens2Matrix :: [Token] -> Token
+tokens2Matrix [] = CpvMatrix []
+tokens2Matrix ((CapivaraList xs):ts) = (CpvMatrix (xs:xss)) where
+                      CpvMatrix xss = (tokens2Matrix ts)
+tokens2List :: [Token] -> Token
+tokens2List [] = CapivaraList []
+tokens2List ((Int x p):ts) = CapivaraList ((fromIntegral x):xs) where
+                    CapivaraList xs = (tokens2List ts)
+tokens2List ((Float x p):ts) = CapivaraList (x:xs) where
+                    CapivaraList xs = (tokens2List ts)
+
 

@@ -27407,8 +27407,8 @@ data Token =
   Char Char       (Int, Int) |
   Boolean Bool    (Int, Int) |
   String   String (Int, Int) |
-  CapivaraList [Token]       |
-  CpvMatrix [[Token]]
+  CapivaraList [Float]       |
+  CpvMatrix [[Float]]
   deriving (Eq,Show)
 
 getLC (AlexPn _ l c) = (l, c)  

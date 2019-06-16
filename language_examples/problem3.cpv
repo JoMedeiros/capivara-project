@@ -11,6 +11,8 @@ Matrix matriz1; Matrix matriz2; Matrix matriz3;
 List list1;
 int i; int j;
 int l1; int l2; int c1; int c2;
+boolean somar; boolean mult;
+somar = True; mult = True;
 
 write "Matriz 1: Quantas linhas?\n";
 read > l1;
@@ -22,17 +24,22 @@ write "Matriz 2: Quantas colunas?\n";
 read > c2;
 
 if (l1 != l2 or c1 != c2) {
+  somar = False;
   write "Não é possível realizar a soma\n";
 }
-if (l1 == l2 and c1 == c2) {
-  write "Lendo Matriz 1\n";
+if (c1 != l2){
+  mult = False;
+  write "Não é possível realizar a multiplicação\n";
+}
+if (somar or mult) {
+  write "Digite os ";
+  write l1 * c1;
+  write " valores da Matriz 1\n";
   i = 0; int x;
   while (i < l1) {
     list1 = [];
-    write "Linha\n";
     j = 0;
     while (j < c1) {
-      write "Coluna\n";
       read > x;
       list1 = list1 ++ x;
       j = j + 1;
@@ -40,13 +47,14 @@ if (l1 == l2 and c1 == c2) {
     matriz1 = matriz1 ++ list1;
     i = i + 1;
   }
+  write "Digite os ";
+  write l2 * c2;
+  write " valores da Matriz 2\n";
   i = 0;
   while (i < l2) {
     list1 = [];
-    write "Linha\n";
     j = 0;
     while (j < c2) {
-      write "Coluna\n";
       read > x;
       list1 = list1 ++ x;
       j = j + 1;
@@ -54,13 +62,18 @@ if (l1 == l2 and c1 == c2) {
     matriz2 = matriz2 ++ list1;
     i = i + 1;
   }
-  write "Matriz:\n";
-  matriz1 = matriz1 + matriz2;
-  write matriz1;
-  write "\n";
-}
-if (c1 != l2){
-  write "Não é possível realizar a multiplicação\n";
+  if (somar) {
+    write "Soma de Matriz:\n";
+    matriz3 = matriz1 + matriz2;
+    write matriz3;
+    write "\n";
+  }
+  if (mult) {
+    write "Multiplicação de Matriz:\n";
+    matriz3 = matriz1 * matriz2;
+    write matriz3;
+    write "\n";
+  }
 }
 
 # while (i < )
