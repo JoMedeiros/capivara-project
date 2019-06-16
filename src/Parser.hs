@@ -70,9 +70,17 @@ ifStatement = do
             c <- endbracketToken 
             if (tokenIsTrue b) then ( do
                 d <- block
+                try (do 
+                  e <- elseToken
+                  g <- LittleBoy.block
+                  return (f:a:b:c:d ++ e:g)) <|> (do return (f:a:b:c:d))
                 return (f:a:b:c:d))
             else ( do
               d <- LittleBoy.block
+              try (do 
+                e <- elseToken
+                g <- block
+                return (f:a:b:c:d ++ e:g)) <|> (do return (f:a:b:c:d))
               return (f:a:b:c:d))
 
 -------------------- While --------------------

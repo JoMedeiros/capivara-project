@@ -32,6 +32,10 @@ ifStatement = do
             b <- expression
             c <- endbracketToken 
             d <- block
+            try (do 
+              e <- elseToken
+              g <- block
+              return (f:a:b ++ c:d ++ e:g)) <|> (do return (f:a:b ++ c:d))
             return (f:a:b ++ c:d)
 
 -------------------- While --------------------
