@@ -4,14 +4,16 @@
 #Crie um programa que leia duas matrizes numéricas e, quando possível, imprima
 #a soma e o produto dessas matrizes. Caso uma operação não possa ser realizada
 #para as matrizes lidas, imprima uma mensagem informando da impossibilidade.
-
-begin program
-
+# Pre declarations
 Matrix matriz1; Matrix matriz2; Matrix matriz3;
 List list1;
 int i; int j;
 int l1; int l2; int c1; int c2;
 boolean somar; boolean mult;
+int x;
+
+begin program
+
 somar = True; mult = True;
 
 write "Matriz 1: Quantas linhas?\n";
@@ -35,7 +37,7 @@ if (somar or mult) {
   write "Digite os ";
   write l1 * c1;
   write " valores da Matriz 1\n";
-  i = 0; int x;
+  i = 0; 
   while (i < l1) {
     list1 = [];
     j = 0;
@@ -75,16 +77,6 @@ if (somar or mult) {
     write "\n";
   }
 }
-
-# while (i < )
-#matriz1 = [[ 1 2 3 4 ]];
-#matriz2 = [[ 2 2 2 2 ]];
-#matriz3 = matriz1 + matriz2;
-#matriz3 = matriz3 ++ list1;
-#write matriz3;
-#write "\nList:";
-#write list1;
-#write "\n";
 
 end program
 

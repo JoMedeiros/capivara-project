@@ -16,12 +16,12 @@ import qualified StatementParser as LittleBoy
 
 program :: ParsecT [Token] CapivaraState IO ([Token])
 program = do
+            updateState( initScope )
             p <- preDecls
             s <- getState
             ----liftIO (print s)
             d <- beginToken 
             a <- programToken 
-            -- updateState( initScope )
             e <- stmts
             f <- endToken
             g <- programToken 
@@ -48,8 +48,6 @@ constDecl = do
             c <- expression
             e <- semicolonToken
             updateState(capivaraStateInsert ( b, c ))
-            s <- getState
-            --liftIO (print s)
             return (z:a:b:i:c:[e])
 
 varDecl :: ParsecT [Token] CapivaraState IO([Token])
@@ -57,10 +55,14 @@ varDecl = do
             a <- typeToken <|> listToken <|> matrixToken
             b <- idToken
             e <- semicolonToken
-            updateState(capivaraStateInsert ( (b, get_default_value a)))
             s <- getState
-            --liftIO (print s)
-            return (a:b:[e])
+            if ((isInScope b (
+                getCurrentScope(s)))) then(do
+              liftIO $ error "Variable declared previously.\n"
+              return [])
+            else ( do
+              updateState(capivaraStateInsert ( (b, get_default_value a)))
+              return (a:b:[e]))
 
 ifStatement :: ParsecT [Token] CapivaraState IO([Token])
 ifStatement = do
@@ -171,7 +173,9 @@ paramsList = (do
                return (a:b:c:d)) <|> (return [])
 
 stmts :: ParsecT [Token] CapivaraState IO([Token])
-stmts = (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> capivaraRead <|> whileStatement <|> ifStatement
+stmts = (do a <- assign <|> block <|> capivaraWrite <|> 
+              capivaraRead <|> whileStatement <|> ifStatement
+            -- <|> varDecl
             b <- stmts
             return (a ++ b)) <|> (return [])
 
@@ -248,14 +252,19 @@ parser tokens = runParserT program (0,0,[],[]) "Error message" tokens
 ------ medidas drásticas foram tomadas -----------
 -------------- Expressions -----------------------
 
+
+isInScope :: Token -> Scope -> Bool
+isInScope (Id _ (l, c)) (_,_,[]) = False
+isInScope (Id id1 p1) (i,j,((Id id2 _,val)):t) = if id1 == id2 then True
+                                         else isInScope (Id id1 p1) (i,j,t)
+isInScope _ _ = False -- Just to avoid error of non-exhaustive...
+
 variable :: ParsecT [Token] CapivaraState IO(Token)
 variable =  (do 
                 s <- getState
                 a <- idToken
                 return (getVal a (
-                    getCurrentScope(s))
-                  )
-             )
+                    getCurrentScope(s))))
  
 getVal :: Token -> Scope -> Token
 getVal (Id _ (l, c)) (_,_,[]) = error ("variable not declared in the scope at line " ++ (show l) ++ " column " ++ (show c))
@@ -265,15 +274,6 @@ getVal (Id id1 p1) (i,j,((Id id2 _,val)):t) = if id1 == id2 then val
 ----------------------------------------
 -- Expressions
 ----------------------------------------
--- @TODO Expand expressions
--- <bool_expression> = <term-1>, { [ ( “and” | “or” | “xor” ), <term-1> ] };
--- <term-1> = <expression>, { [ ( “==” | “!=” | “<” | “>” | “<=” | “>=” ), <expression> ] };
--- <expression> = <term-3>, { [ ( “+” | “-” ), <term-3> ] };
--- <term-3> = <term-4>, { [ ( “*” | “/” | “mod” ), <term-4> ] };
--- <term-4> = <factor>, { [ ( “**” ), <factor> ] } | ( “++” | “--” ), <term-1>;
--- <factor> = identifier | <literal> | “(”, <expression>, “)”;
--- <literal> = int-literal | float-literal | boolean-literal | string-literal
-
 --------------------- Level 1 --------------------
 expression :: ParsecT [Token] CapivaraState IO(Token)
 expression = try bin_expression <|> una_expression

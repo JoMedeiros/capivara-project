@@ -30,6 +30,7 @@ popScope (sc,vc,s:scs,enums) = (sc-1,vc,scs,enums)
 
 -- Returning current Scope
 getCurrentScope :: CapivaraState -> Scope
+getCurrentScope (_,_,([]),_) = error "No scope initialized\n"
 getCurrentScope (_,_,(c:cs),_) = c
 
 -- funções para a tabela de símbolos

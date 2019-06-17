@@ -1,9 +1,10 @@
 # Pre declarations
+float x;
+float y;
+int c;
+float r;
+
 begin program
-  float x;
-  float y;
-  int c;
-  float r;
 
   write "digite o valor de x: \n";
   read > x;
@@ -14,7 +15,7 @@ begin program
 
   r = x**2 - y + c;
   write "O resultado de x**2 - y + c é :\n";
-  write r;
+  write r; write "\n";
 
 end program
 

@@ -11,17 +11,16 @@
 # passados como parâmetros (um subprograma por operação).
 # No programa principal, invoque cada um dos subprogramas e imprima os resul-
 # tados produzidos, indicando numerador e denominador. 
-
-function int A (int a, int b) {
-  int a;
+# Pre declarations
+int b;
+function int sum (int a, int b) {
   write "Retornando valor...\n";
   return 2;
 }
 
-int b;
 begin program 
 
-b = 10 + <A()>;
+b = 10 + <sum()>;
 write b;
 write "\n";
 

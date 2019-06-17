@@ -3,15 +3,15 @@
 # e [76, 100]. A entrada de dados deve terminar quando for lido um número
 # negativo.
 # Pre declarations
+#Contadores
+int i1;
+int i2;
+int i3;
+int i4;
+int x;
 
 begin program
 
-  #Contadores
-  int i1;
-  int i2;
-  int i3;
-  int i4;
-  int x;
   x = 0;
   while (x >= 0) 
   {
@@ -36,14 +36,10 @@ begin program
     }   
   }
 
-  write i1;
-  write "\n";
-  write i2;
-  write "\n";
-  write i3;
-  write "\n";
-  write i4;
-  write "\n";
+  write i1; write "\n";
+  write i2; write "\n";
+  write i3; write "\n";
+  write i4; write "\n";
 
 end program
 
