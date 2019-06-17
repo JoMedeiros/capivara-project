@@ -1,0 +1,29 @@
+# Defina o tipo rational_t para representar números racionais. O tipo rational_t
+# deve ser representado como um registro (ou tipo correspondente) com campos
+# inteiros numerador e denominador. Em seguida, escreva os seguintes subpro-
+# gramas:
+# A) Subprograma que, dados dois parâmetros inteiros a e b, onde b 6 = 0, retorna
+# um valor rational_t para representar a fração a/b.
+# B) Subprograma que, dados dois parâmetros do tipo rational_t, retorna true
+# se eles representam o mesmo número racional ou f alse, em caso contrário.
+# C) Subprogramas que retornem um valor rational_t correspondente a soma,
+# negação, subtração, multiplicação, inverso e divisão entre valores rational_t,
+# passados como parâmetros (um subprograma por operação).
+# No programa principal, invoque cada um dos subprogramas e imprima os resul-
+# tados produzidos, indicando numerador e denominador. 
+
+function int A (int a, int b) {
+  int a;
+  write "Retornando valor...\n";
+  return 2;
+}
+
+int b;
+begin program 
+
+b = 10 + <A()>;
+write b;
+write "\n";
+
+end program 
+

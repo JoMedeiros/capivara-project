@@ -101,20 +101,41 @@ paramsList = (do
                d <- paramsList
                return (a:b:c:d)) <|> (return [])
 
-identifiersList = (do
-                    a <- idToken
-                    b <- commaToken
-                    c <- identifiersList
-                    return (a:b:c)) <|>
-                  (do
-                    a <- idToken
-                    b <- identifiersList
-                    return (a:b)) <|> (return [])
+argsList = (do
+               a <- expression
+               b <- commaToken
+               c <- argsList
+               return (a ++ b:c)) <|>
+             (do
+               a <- expression
+               b <- argsList
+               return (a ++ b)) <|> (return [])
 
 stmts :: ParsecT [Token] CapivaraState IO([Token])
-stmts = (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> capivaraRead <|> whileStatement <|> ifStatement
-            b <- stmts
-            return (a ++ b)) <|> (return [])
+stmts = try (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> 
+                    capivaraRead <|> whileStatement <|> ifStatement <|> returnExp
+                b <- stmts
+                return (a ++ b)) <|> 
+            (do a <- functionCall
+                b <- stmts
+                return (a ++ b)) <|> (return [])
+
+functionCall :: ParsecT [Token] CapivaraState IO([Token])
+functionCall = do
+          z <- lessToken
+          a <- idToken
+          b <- beginbracketToken
+          c <- argsList
+          d <- endbracketToken
+          w <- greaterToken
+          return (z:a:b:c ++ d:[w])
+
+returnExp :: ParsecT [Token] CapivaraState IO([Token])
+returnExp = do
+            a <- returnToken
+            b <- expression
+            c <- semicolonToken
+            return (a:b ++ [c])
 
 block :: ParsecT [Token] CapivaraState IO([Token])
 block = (do a <- beginscopeToken
@@ -151,15 +172,6 @@ capivaraRead = do
 ----------------------------------------
 -- Expressions
 ----------------------------------------
--- @TODO Expand expressions
--- <bool_expression> = <term-1>, { [ ( “and” | “or” | “xor” ), <term-1> ] };
--- <term-1> = <expression>, { [ ( “==” | “!=” | “<” | “>” | “<=” | “>=” ), <expression> ] };
--- <expression> = <term-3>, { [ ( “+” | “-” ), <term-3> ] };
--- <term-3> = <term-4>, { [ ( “*” | “/” | “mod” ), <term-4> ] };
--- <term-4> = <factor>, { [ ( “**” ), <factor> ] } | ( “++” | “--” ), <term-1>;
--- <factor> = identifier | <literal> | “(”, <expression>, “)”;
--- <literal> = int-literal | float-literal | boolean-literal | string-literal
-
 --------------------- Level 1 --------------------
 expression :: ParsecT [Token] CapivaraState IO([Token])
 expression = try bin_expression <|> una_expression

@@ -64,6 +64,11 @@ procedureToken = tokenPrim show update_pos get_token where
   get_token (Procedure p) = Just (Procedure p)
   get_token _ = Nothing
 
+returnToken :: ParsecT [Token] st IO(Token)
+returnToken = tokenPrim show update_pos get_token where
+  get_token (Return p) = Just (Return p)
+  get_token _ = Nothing
+
 ifToken :: ParsecT [Token] st IO(Token)
 ifToken = tokenPrim show update_pos get_token where
   get_token (If p) = Just (If p)

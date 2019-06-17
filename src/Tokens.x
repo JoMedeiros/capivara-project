@@ -20,6 +20,7 @@ tokens :-
   const                           { \p s -> Const (getLC p) }
   function                        { \p s -> Function (getLC p) }
   procedure                       { \p s -> Procedure (getLC p) }
+  "return"                        { \p s -> Return (getLC p) }
   then                            { \p s -> Then (getLC p) }
   write                           { \p s -> Write (getLC p) }
   "read"                          { \p s -> Read (getLC p) }
@@ -86,6 +87,7 @@ data Token =
   Const           (Int, Int) |
   Function        (Int, Int) |
   Procedure       (Int, Int) |
+  Return          (Int, Int) |
   If              (Int, Int) |
   While           (Int, Int) |
   For             (Int, Int) |
@@ -127,7 +129,8 @@ data Token =
   Boolean Bool    (Int, Int) |
   String   String (Int, Int) |
   CapivaraList [Float]       |
-  CpvMatrix [[Float]]
+  CpvMatrix [[Float]]        |
+  CpvFunc [Token]
   deriving (Eq,Show)
 
 getLC (AlexPn _ l c) = (l, c)  

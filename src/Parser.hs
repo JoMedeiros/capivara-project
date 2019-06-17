@@ -21,7 +21,7 @@ program = do
             ----liftIO (print s)
             d <- beginToken 
             a <- programToken 
-            updateState( initScope )
+            -- updateState( initScope )
             e <- stmts
             f <- endToken
             g <- programToken 
@@ -136,8 +136,16 @@ function = do
             c <- beginbracketToken
             p <- paramsList
             d <- endbracketToken
-            e <- block
+            e <- LittleBoy.block
+            updateState(capivaraStateInsert ( b, CpvFunc e ))
             return (f:a:b:c:d:e)
+
+returnExp :: ParsecT [Token] CapivaraState IO([Token])
+returnExp = do
+            a <- returnToken
+            b <- expression
+            c <- semicolonToken
+            return (a:b:[c])
 
 procedure :: ParsecT [Token] CapivaraState IO([Token])
 procedure = do
@@ -161,16 +169,6 @@ paramsList = (do
                c <- idToken
                d <- paramsList
                return (a:b:c:d)) <|> (return [])
-
-identifiersList = (do
-                    a <- idToken
-                    b <- commaToken
-                    c <- identifiersList
-                    return (a:b:c)) <|>
-                  (do
-                    a <- idToken
-                    b <- identifiersList
-                    return (a:b)) <|> (return [])
 
 stmts :: ParsecT [Token] CapivaraState IO([Token])
 stmts = (do a <- assign <|> varDecl <|> block <|> capivaraWrite <|> capivaraRead <|> whileStatement <|> ifStatement
@@ -245,11 +243,224 @@ generateToken _ _ = error "error: input type error"
 parser :: [Token] -> IO (Either ParseError [Token])
 parser tokens = runParserT program (0,0,[],[]) "Error message" tokens
 
--- main :: IO ()
--- main = do
---        (file:args) <-getArgs
---        putStrLn file
---        case unsafePerformIO (parser (getTokens file)) of
---             { Left err -> print err; 
---               Right ans -> print ans
---             }
+--------------------------------------------------
+----------- Atenção! A partir daqui --------------
+------ medidas drásticas foram tomadas -----------
+-------------- Expressions -----------------------
+
+variable :: ParsecT [Token] CapivaraState IO(Token)
+variable =  (do 
+                s <- getState
+                a <- idToken
+                return (getVal a (
+                    getCurrentScope(s))
+                  )
+             )
+ 
+getVal :: Token -> Scope -> Token
+getVal (Id _ (l, c)) (_,_,[]) = error ("variable not declared in the scope at line " ++ (show l) ++ " column " ++ (show c))
+getVal (Id id1 p1) (i,j,((Id id2 _,val)):t) = if id1 == id2 then val
+                                         else getVal (Id id1 p1) (i,j,t)
+
+----------------------------------------
+-- Expressions
+----------------------------------------
+-- @TODO Expand expressions
+-- <bool_expression> = <term-1>, { [ ( “and” | “or” | “xor” ), <term-1> ] };
+-- <term-1> = <expression>, { [ ( “==” | “!=” | “<” | “>” | “<=” | “>=” ), <expression> ] };
+-- <expression> = <term-3>, { [ ( “+” | “-” ), <term-3> ] };
+-- <term-3> = <term-4>, { [ ( “*” | “/” | “mod” ), <term-4> ] };
+-- <term-4> = <factor>, { [ ( “**” ), <factor> ] } | ( “++” | “--” ), <term-1>;
+-- <factor> = identifier | <literal> | “(”, <expression>, “)”;
+-- <literal> = int-literal | float-literal | boolean-literal | string-literal
+
+--------------------- Level 1 --------------------
+expression :: ParsecT [Token] CapivaraState IO(Token)
+expression = try bin_expression <|> una_expression
+
+una_expression :: ParsecT [Token] CapivaraState IO(Token)
+una_expression =  (do
+                      op <- opandToken <|> oporToken <|> opxorToken
+                      a <- term1
+                      return (a))
+
+--- funções considerando associatividade à esquerda                  
+bin_expression :: ParsecT [Token] CapivaraState IO(Token)
+bin_expression = do
+                   n1 <- term1
+                   result <- eval_remaining n1
+                   return (result)
+
+eval_remaining :: Token -> ParsecT [Token] CapivaraState IO(Token)
+eval_remaining n1 = do
+                      op <- opandToken <|> oporToken <|> opxorToken
+                      n2 <- term1
+                      result <- eval_remaining (eval n1 op n2)
+                      return (result) 
+                    <|> return (n1)         
+
+--------------------- Level 2 --------------------
+term1 :: ParsecT [Token] CapivaraState IO(Token)
+term1 = try bin_term1 <|> una_term1
+
+una_term1 :: ParsecT [Token] CapivaraState IO(Token)
+una_term1 =  (do
+                      op <- equalToken <|> differentToken <|> greaterToken <|> lessToken <|> greaterorequalToken <|> lessorequalToken
+                      a <- term2
+                      return (a))
+
+--- funções considerando associatividade à esquerda                  
+bin_term1 :: ParsecT [Token] CapivaraState IO(Token)
+bin_term1 = do
+                   n1 <- term2
+                   result <- eval_term1 n1
+                   return (result)     
+
+eval_term1 :: Token -> ParsecT [Token] CapivaraState IO(Token)
+eval_term1 n1 = do
+                    op <- equalToken <|> differentToken <|> greaterToken <|> lessToken <|> greaterorequalToken <|> lessorequalToken
+                    n2 <- term2
+                    result <- eval_term1 (eval n1 op n2)
+                    return (result) 
+                    <|> return (n1)
+
+--------------------- Level 3 --------------------
+term2 :: ParsecT [Token] CapivaraState IO(Token)
+term2 = try bin_term2 <|> una_term2
+
+una_term2 :: ParsecT [Token] CapivaraState IO(Token)
+una_term2 =  (do
+                      op <- plusToken <|> minusToken
+                      a <- term3
+                      return (a))
+
+--- funções considerando associatividade à esquerda                  
+bin_term2 :: ParsecT [Token] CapivaraState IO(Token)
+bin_term2 = do
+                   n1 <- term3
+                   result <- eval_term2 n1
+                   return (result)             
+
+eval_term2 :: Token -> ParsecT [Token] CapivaraState IO(Token)
+eval_term2 n1 = do
+                    op <- plusToken <|> minusToken
+                    n2 <- term3
+                    result <- eval_term2 (eval n1 op n2)
+                    return (result) 
+                    <|> return (n1)
+
+--------------------- Level 4 --------------------
+term3 :: ParsecT [Token] CapivaraState IO(Token)
+term3 = try bin_term3 <|> una_term3
+
+una_term3 :: ParsecT [Token] CapivaraState IO(Token)
+una_term3 =  (do
+                op <- multToken <|> divToken <|> modToken
+                a <- term4
+                return (a))
+ 
+--- funções considerando associatividade à esquerda                  
+bin_term3 :: ParsecT [Token] CapivaraState IO(Token)
+bin_term3 = do
+                   n1 <- term4
+                   result <- eval_term3 n1
+                   return (result)
+
+eval_term3 :: Token -> ParsecT [Token] CapivaraState IO(Token)
+eval_term3 n1 = do
+                    op <- multToken <|> divToken <|> modToken
+                    n2 <- term4
+                    result <- eval_term3 (eval n1 op n2)
+                    return (result) 
+                    <|> return (n1)                              
+
+--------------------- Level 5 --------------------
+term4 :: ParsecT [Token] CapivaraState IO(Token)
+term4 = try bin_term4 <|> una_term4
+
+una_term4 :: ParsecT [Token] CapivaraState IO(Token)
+una_term4 =  (do
+                op <- powerToken <|> plusplusToken
+                a <- intToken <|> booleanToken <|> floatToken <|> stringToken
+                    <|> variable <|> try listLiteral <|> try matrixLiteral 
+                    <|> parenExpr <|> functionCall
+                return (a))
+ 
+--- funções considerando associatividade à esquerda                  
+bin_term4 :: ParsecT [Token] CapivaraState IO(Token)
+bin_term4 = do
+                   n1 <- intToken <|> booleanToken <|> floatToken <|> 
+                      stringToken <|> variable <|>  
+                      try listLiteral <|> try matrixLiteral <|> parenExpr
+                      <|> functionCall
+                   result <- eval_term4 n1
+                   return (result)
+
+eval_term4 :: Token -> ParsecT [Token] CapivaraState IO(Token)
+eval_term4 n1 = do
+                 op <- powerToken <|> plusplusToken
+                 n2 <- intToken <|> booleanToken  <|> floatToken <|> 
+                    stringToken <|> variable <|> try listLiteral <|> 
+                    try matrixLiteral <|> parenExpr <|> functionCall
+                 result <- eval_term4 (eval n1 op n2)
+                 return (result) 
+                 <|> return (n1) 
+
+parenExpr = do
+                 a <- beginbracketToken
+                 b <- expression
+                 c <- endbracketToken
+                 return b
+
+listLiteral :: ParsecT [Token] CapivaraState IO(Token)
+listLiteral = (do
+                a <- beginlistToken
+                b <- manyTill (floatToken <|> intToken)
+                -- <|> booleanToken  <|> floatToken <|> stringToken) 
+                      (endlistToken) <|>
+                      manyTill variable (endlistToken) <|> (do return [])
+                return (tokens2List b))
+
+matrixLiteral :: ParsecT [Token] CapivaraState IO(Token)
+matrixLiteral = (do
+                a <- beginlistToken
+                b <- manyTill (listLiteral) (endlistToken) <|>
+                    manyTill variable (endlistToken)
+                return (tokens2Matrix b))
+
+-- makeMatrix :: [Token] -> Token
+-- makeMatrix ls = CpvMatrix (map getTokenList (ls))
+
+getTokenList :: Token -> [Float]
+getTokenList (CapivaraList tks) = tks
+
+-- Functions TODO computar o valor
+functionCall :: ParsecT [Token] CapivaraState IO(Token)
+functionCall = do
+          z <- lessToken
+          CpvFunc args <- variable
+          b <- beginbracketToken
+          c <- argsList
+          d <- endbracketToken
+          w <- greaterToken
+          w <- getInput
+          setInput args
+          i <- beginscopeToken
+          n <- stmts
+          j <- returnToken
+          k <- expression
+          l <- semicolonToken
+          m <- endscopeToken
+          setInput w
+          return (k)
+
+argsList = (do
+               a <- idToken
+               b <- commaToken
+               c <- argsList
+               return (a:b:c)) <|>
+             (do
+               a <- idToken
+               b <- argsList
+               return (a:b)) <|> (return [])
+
